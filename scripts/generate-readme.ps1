@@ -70,6 +70,73 @@ function Get-LinkPath {
   return ($encoded -join "/")
 }
 
+function Get-GitOutput {
+  param(
+    [string[]]$CommandArgs
+  )
+
+  try {
+    $output = & git @CommandArgs 2>$null
+    if ($LASTEXITCODE -ne 0) {
+      return ""
+    }
+
+    if ($null -eq $output) {
+      return ""
+    }
+
+    return ($output -join [Environment]::NewLine).Trim()
+  } catch {
+    return ""
+  }
+}
+
+function Get-BranchName {
+  $originHead = Get-GitOutput -CommandArgs @("symbolic-ref", "refs/remotes/origin/HEAD")
+  if (-not [string]::IsNullOrWhiteSpace($originHead) -and $originHead -match "^refs/remotes/origin/(.+)$") {
+    return $matches[1]
+  }
+
+  $currentBranch = Get-GitOutput -CommandArgs @("rev-parse", "--abbrev-ref", "HEAD")
+  if (-not [string]::IsNullOrWhiteSpace($currentBranch) -and $currentBranch -ne "HEAD") {
+    return $currentBranch
+  }
+
+  return "main"
+}
+
+function Get-GitHubRawBaseUrl {
+  $origin = Get-GitOutput -CommandArgs @("remote", "get-url", "origin")
+  if ([string]::IsNullOrWhiteSpace($origin)) {
+    return ""
+  }
+
+  $normalized = $origin.Trim()
+  if ($normalized.EndsWith(".git")) {
+    $normalized = $normalized.Substring(0, $normalized.Length - 4)
+  }
+
+  $owner = ""
+  $repo = ""
+
+  if ($normalized -match "^https?://github\.com/([^/]+)/([^/]+)$") {
+    $owner = $matches[1]
+    $repo = $matches[2]
+  } elseif ($normalized -match "^git@github\.com:([^/]+)/([^/]+)$") {
+    $owner = $matches[1]
+    $repo = $matches[2]
+  } else {
+    return ""
+  }
+
+  if ([string]::IsNullOrWhiteSpace($owner) -or [string]::IsNullOrWhiteSpace($repo)) {
+    return ""
+  }
+
+  $branch = Get-BranchName
+  return "https://raw.githubusercontent.com/$owner/$repo/$branch"
+}
+
 function Get-MainFolder {
   param(
     [string]$RelativePath
@@ -237,6 +304,7 @@ $outputFile = if ([System.IO.Path]::IsPathRooted($OutputPath)) {
   Join-Path $repoRoot $OutputPath
 }
 $authorMetadata = Read-AuthorMetadata -RepoRoot $repoRoot -MetadataPath $MetadataPath
+$rawBaseUrl = Get-GitHubRawBaseUrl
 
 $cssFiles = Get-ChildItem -Path $repoRoot -Recurse -File -Filter "*.css" | Sort-Object FullName
 $themes = [System.Collections.Generic.List[object]]::new()
@@ -298,6 +366,7 @@ foreach ($file in $cssFiles) {
     Description = Get-MetadataValue -Raw $raw -Key "description"
     Path        = $relativePath
     LinkPath    = Get-LinkPath -RelativePath $relativePath
+    RawUrl      = if ([string]::IsNullOrWhiteSpace($rawBaseUrl)) { "" } else { "$rawBaseUrl/$(Get-LinkPath -RelativePath $relativePath)" }
     MainFolder  = $mainFolder
     UsedFallback = $usedFallback
   }
@@ -314,7 +383,7 @@ $readmeLines.Add("# discord-themes")
 $readmeLines.Add("")
 $readmeLines.Add("## Themes")
 $readmeLines.Add("")
-$readmeLines.Add("| Theme | Author | Version | Description | File |")
+$readmeLines.Add("| Theme | Author | Version | Description | Raw URL/Online Theme URL |")
 $readmeLines.Add("| --- | --- | --- | --- | --- |")
 
 foreach ($theme in $sortedThemes) {
@@ -322,9 +391,11 @@ foreach ($theme in $sortedThemes) {
   $themeAuthor = Escape-TableCell -Value $theme.Author
   $themeVersion = Escape-TableCell -Value $theme.Version
   $themeDescription = Escape-TableCell -Value $theme.Description
-  $themePath = Escape-TableCell -Value $theme.Path
+  $rawLink = if ([string]::IsNullOrWhiteSpace($theme.RawUrl)) { "-" } else { "[Raw URL]($($theme.RawUrl))" }
+  $localLink = "[Online Theme URL]($($theme.LinkPath))"
+  $combinedLinks = "$rawLink / $localLink"
 
-  $readmeLines.Add("| $themeName | $themeAuthor | $themeVersion | $themeDescription | [$themePath]($($theme.LinkPath)) |")
+  $readmeLines.Add("| $themeName | $themeAuthor | $themeVersion | $themeDescription | $combinedLinks |")
 }
 
 $readmeLines.Add("")
@@ -335,7 +406,7 @@ foreach ($group in $authorGroups) {
   $readmeLines.Add("")
   $readmeLines.Add("### $author")
   $readmeLines.Add("")
-  $readmeLines.Add("| Theme | Version | Description | File |")
+  $readmeLines.Add("| Theme | Version | Description | Raw URL/Online Theme URL |")
   $readmeLines.Add("| --- | --- | --- | --- |")
 
   $groupThemes = @($group.Group | Sort-Object Name)
@@ -343,9 +414,11 @@ foreach ($group in $authorGroups) {
     $themeName = Escape-TableCell -Value $theme.Name
     $themeVersion = Escape-TableCell -Value $theme.Version
     $themeDescription = Escape-TableCell -Value $theme.Description
-    $themePath = Escape-TableCell -Value $theme.Path
+    $rawLink = if ([string]::IsNullOrWhiteSpace($theme.RawUrl)) { "-" } else { "[Raw URL]($($theme.RawUrl))" }
+    $localLink = "[Online Theme URL]($($theme.LinkPath))"
+    $combinedLinks = "$rawLink / $localLink"
 
-    $readmeLines.Add("| $themeName | $themeVersion | $themeDescription | [$themePath]($($theme.LinkPath)) |")
+    $readmeLines.Add("| $themeName | $themeVersion | $themeDescription | $combinedLinks |")
   }
 
   $readmeLines.Add("")

@@ -2,30 +2,30 @@
 
 ## Themes
 
-| Theme | Author | Version | Description | File |
+| Theme | Author | Version | Description | Raw URL/Online Theme URL |
 | --- | --- | --- | --- | --- |
-| Dr. Stone | 8Bit | 2.0.0 | Dr. Stone-inspired theme with a vibrant oceanic palette, custom fonts, and enhanced visual effects for a refreshing Discord experience. | [8Bit Themes/Dr. Stone/dr.stone.css](8Bit%20Themes/Dr.%20Stone/dr.stone.css) |
-| Beastars - Moonlit Wolf | Silverfox0338 | 8.0.7 | Beastars-themed Discord - Moonlit Legoshi | [Silver Themes/Legoshi/legoshi-theme.css](Silver%20Themes/Legoshi/legoshi-theme.css) |
-| Cozy Autumn Morning (SFW) | Silverfox0338 | 1.0.0 | Warm autumn-themed Discord - Cozy Fall Vibes with Jack-o'-Lantern ambiance | [Silver Themes/korone-theme.css](Silver%20Themes/korone-theme.css) |
-| Tokyo Ghoul | Silverfox0338 | 2.3.1 | Tokyo Ghoul-inspired theme with a dark, moody aesthetic, custom fonts, and enhanced visual effects for an immersive Discord experience. | [Silver Themes/B's Theme/tokyoghoul.css](Silver%20Themes/B's%20Theme/tokyoghoul.css) |
+| Dr. Stone | 8Bit | 2.0.0 | Dr. Stone-inspired theme with a vibrant oceanic palette, custom fonts, and enhanced visual effects for a refreshing Discord experience. | [Raw URL](https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/8Bit%20Themes/Dr.%20Stone/dr.stone.css) / [Online Theme URL](8Bit%20Themes/Dr.%20Stone/dr.stone.css) |
+| Beastars - Moonlit Wolf | Silverfox0338 | 8.0.7 | Beastars-themed Discord - Moonlit Legoshi | [Raw URL](https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Silver%20Themes/Legoshi/legoshi-theme.css) / [Online Theme URL](Silver%20Themes/Legoshi/legoshi-theme.css) |
+| Cozy Autumn Morning (SFW) | Silverfox0338 | 1.0.0 | Warm autumn-themed Discord - Cozy Fall Vibes with Jack-o'-Lantern ambiance | [Raw URL](https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Silver%20Themes/korone-theme.css) / [Online Theme URL](Silver%20Themes/korone-theme.css) |
+| Tokyo Ghoul | Silverfox0338 | 2.3.1 | Tokyo Ghoul-inspired theme with a dark, moody aesthetic, custom fonts, and enhanced visual effects for an immersive Discord experience. | [Raw URL](https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Silver%20Themes/B's%20Theme/tokyoghoul.css) / [Online Theme URL](Silver%20Themes/B's%20Theme/tokyoghoul.css) |
 
 ## Authors
 
 ### 8Bit
 
-| Theme | Version | Description | File |
+| Theme | Version | Description | Raw URL/Online Theme URL |
 | --- | --- | --- | --- |
-| Dr. Stone | 2.0.0 | Dr. Stone-inspired theme with a vibrant oceanic palette, custom fonts, and enhanced visual effects for a refreshing Discord experience. | [8Bit Themes/Dr. Stone/dr.stone.css](8Bit%20Themes/Dr.%20Stone/dr.stone.css) |
+| Dr. Stone | 2.0.0 | Dr. Stone-inspired theme with a vibrant oceanic palette, custom fonts, and enhanced visual effects for a refreshing Discord experience. | [Raw URL](https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/8Bit%20Themes/Dr.%20Stone/dr.stone.css) / [Online Theme URL](8Bit%20Themes/Dr.%20Stone/dr.stone.css) |
 
 Total themes: 1
 
 ### Silverfox0338
 
-| Theme | Version | Description | File |
+| Theme | Version | Description | Raw URL/Online Theme URL |
 | --- | --- | --- | --- |
-| Beastars - Moonlit Wolf | 8.0.7 | Beastars-themed Discord - Moonlit Legoshi | [Silver Themes/Legoshi/legoshi-theme.css](Silver%20Themes/Legoshi/legoshi-theme.css) |
-| Cozy Autumn Morning (SFW) | 1.0.0 | Warm autumn-themed Discord - Cozy Fall Vibes with Jack-o'-Lantern ambiance | [Silver Themes/korone-theme.css](Silver%20Themes/korone-theme.css) |
-| Tokyo Ghoul | 2.3.1 | Tokyo Ghoul-inspired theme with a dark, moody aesthetic, custom fonts, and enhanced visual effects for an immersive Discord experience. | [Silver Themes/B's Theme/tokyoghoul.css](Silver%20Themes/B's%20Theme/tokyoghoul.css) |
+| Beastars - Moonlit Wolf | 8.0.7 | Beastars-themed Discord - Moonlit Legoshi | [Raw URL](https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Silver%20Themes/Legoshi/legoshi-theme.css) / [Online Theme URL](Silver%20Themes/Legoshi/legoshi-theme.css) |
+| Cozy Autumn Morning (SFW) | 1.0.0 | Warm autumn-themed Discord - Cozy Fall Vibes with Jack-o'-Lantern ambiance | [Raw URL](https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Silver%20Themes/korone-theme.css) / [Online Theme URL](Silver%20Themes/korone-theme.css) |
+| Tokyo Ghoul | 2.3.1 | Tokyo Ghoul-inspired theme with a dark, moody aesthetic, custom fonts, and enhanced visual effects for an immersive Discord experience. | [Raw URL](https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Silver%20Themes/B's%20Theme/tokyoghoul.css) / [Online Theme URL](Silver%20Themes/B's%20Theme/tokyoghoul.css) |
 
 Total themes: 3
 
