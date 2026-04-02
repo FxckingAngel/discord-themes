@@ -21,7 +21,7 @@
   --offline-color: #5A5A64;
   --invisible-color: #4A4A52;
   --background-shading: 100%;
-  --background-image: url("https://i.imgur.com/QvrhjUx.png");
+  --background-image: url("legoshi.png");
   --background-position: center;
   --background-size: cover;
   --background-repeat: no-repeat;
@@ -45,7 +45,7 @@
   --user-modal-size: cover;
   --user-modal-blur: 4px;
   --user-modal-brightness: 0.45;
-  --home-icon: url("https://i.imgur.com/1n8pQua.png");
+  --home-icon: url("legoshi-home-button.png");
   --home-position: 20% center;
   --home-size: 100%;
   --main-font: "Zen Kaku Gothic New", "gg sans", "Noto Sans JP", sans-serif;
