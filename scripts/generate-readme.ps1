@@ -1,6 +1,7 @@
 param(
   [string]$OutputPath = "README.md",
-  [string]$MetadataPath = "theme-authors.json"
+  [string]$MetadataPath = "theme-authors.json",
+  [switch]$NoAuthorPrompt
 )
 
 $ErrorActionPreference = "Stop"
@@ -297,6 +298,360 @@ function Resolve-AuthorFromMetadata {
   return ""
 }
 
+function Get-UniqueAuthors {
+  param(
+    [string[]]$Authors
+  )
+
+  $result = [System.Collections.Generic.List[string]]::new()
+  foreach ($author in $Authors) {
+    if ([string]::IsNullOrWhiteSpace($author)) { continue }
+
+    $trimmed = $author.Trim()
+    if (-not ($result -contains $trimmed)) {
+      $result.Add($trimmed)
+    }
+  }
+
+  return @($result)
+}
+
+function Get-AuthorsFromFolderEntry {
+  param(
+    $FolderEntry
+  )
+
+  if ($null -eq $FolderEntry) {
+    return @()
+  }
+
+  $authors = [System.Collections.Generic.List[string]]::new()
+
+  $authorsValue = Get-ObjectPropertyValue -Object $FolderEntry -Name "authors"
+  if ($null -ne $authorsValue) {
+    if ($authorsValue -is [string]) {
+      $authors.Add($authorsValue)
+    } elseif ($authorsValue -is [System.Collections.IEnumerable]) {
+      foreach ($item in $authorsValue) {
+        if ($null -eq $item) { continue }
+        $authors.Add([string]$item)
+      }
+    }
+  }
+
+  $authorValue = Get-ObjectPropertyValue -Object $FolderEntry -Name "author"
+  if ($null -ne $authorValue) {
+    $authors.Add([string]$authorValue)
+  }
+
+  return @(Get-UniqueAuthors -Authors @($authors))
+}
+
+function Build-FolderEntryFromAuthors {
+  param(
+    [string[]]$Authors
+  )
+
+  $uniqueAuthors = @(Get-UniqueAuthors -Authors $Authors)
+  if ($uniqueAuthors.Count -le 0) {
+    return [ordered]@{}
+  }
+
+  if ($uniqueAuthors.Count -eq 1) {
+    return [ordered]@{
+      author = $uniqueAuthors[0]
+    }
+  }
+
+  return [ordered]@{
+    authors = $uniqueAuthors
+  }
+}
+
+function Get-KnownAuthorsFromFolderMap {
+  param(
+    [hashtable]$FolderMap
+  )
+
+  $authors = [System.Collections.Generic.List[string]]::new()
+  foreach ($entry in $FolderMap.Values) {
+    foreach ($author in (Get-AuthorsFromFolderEntry -FolderEntry $entry)) {
+      if (-not ($authors -contains $author)) {
+        $authors.Add($author)
+      }
+    }
+  }
+
+  return @($authors | Sort-Object)
+}
+
+function Save-AuthorMetadata {
+  param(
+    [string]$Path,
+    $SchemaVersion,
+    [hashtable]$FolderMap
+  )
+
+  $schema = if ($null -eq $SchemaVersion) { 1 } else { $SchemaVersion }
+  $foldersOut = [ordered]@{}
+
+  foreach ($folder in ($FolderMap.Keys | Sort-Object)) {
+    $entry = Build-FolderEntryFromAuthors -Authors (Get-AuthorsFromFolderEntry -FolderEntry $FolderMap[$folder])
+    if ($entry.Keys.Count -eq 0) { continue }
+    $foldersOut[$folder] = $entry
+  }
+
+  $lines = [System.Collections.Generic.List[string]]::new()
+  $lines.Add("{")
+  $lines.Add("  `"schemaVersion`": $schema,")
+
+  if ($foldersOut.Count -eq 0) {
+    $lines.Add("  `"folders`": {}")
+    $lines.Add("}")
+    Set-Content -LiteralPath $Path -Value ($lines -join [Environment]::NewLine) -Encoding utf8
+    return
+  }
+
+  $lines.Add("  `"folders`": {")
+  $folderKeys = @($foldersOut.Keys)
+
+  for ($i = 0; $i -lt $folderKeys.Count; $i++) {
+    $folder = $folderKeys[$i]
+    $folderEntry = $foldersOut[$folder]
+    $folderJson = $folder | ConvertTo-Json -Compress
+    $folderComma = if ($i -lt ($folderKeys.Count - 1)) { "," } else { "" }
+
+    $lines.Add("    ${folderJson}: {")
+
+    if ($folderEntry.Contains("authors")) {
+      $authorsJson = $folderEntry["authors"] | ConvertTo-Json -Compress
+      $lines.Add("      `"authors`": $authorsJson")
+    } else {
+      $authorJson = $folderEntry["author"] | ConvertTo-Json -Compress
+      $lines.Add("      `"author`": $authorJson")
+    }
+
+    $lines.Add("    }$folderComma")
+  }
+
+  $lines.Add("  }")
+  $lines.Add("}")
+
+  $json = $lines -join [Environment]::NewLine
+  Set-Content -LiteralPath $Path -Value $json -Encoding utf8
+}
+
+function Read-YesNo {
+  param(
+    [string]$Prompt,
+    [bool]$DefaultYes = $true
+  )
+
+  while ($true) {
+    $suffix = if ($DefaultYes) { "[Y/n]" } else { "[y/N]" }
+    $input = (Read-Host "$Prompt $suffix").Trim()
+
+    if ([string]::IsNullOrWhiteSpace($input)) {
+      return $DefaultYes
+    }
+
+    switch ($input.ToLowerInvariant()) {
+      "y" { return $true }
+      "yes" { return $true }
+      "n" { return $false }
+      "no" { return $false }
+      default {
+        Write-Host "Please answer y or n."
+      }
+    }
+  }
+}
+
+function Prompt-ForAuthorSelection {
+  param(
+    [string]$Folder,
+    [string[]]$KnownAuthors
+  )
+
+  $options = @($KnownAuthors | Sort-Object -Unique)
+
+  while ($true) {
+    Write-Host ""
+    Write-Host "Choose owner for folder '$Folder':"
+    for ($i = 0; $i -lt $options.Count; $i++) {
+      Write-Host "$($i + 1)) $($options[$i])"
+    }
+    Write-Host "N) New author"
+
+    $choice = (Read-Host "Pick 1-$($options.Count) or N").Trim()
+    if ([string]::IsNullOrWhiteSpace($choice)) {
+      continue
+    }
+
+    if ($choice -match "^[nN]$") {
+      while ($true) {
+        $newAuthor = (Read-Host "Enter new author name").Trim()
+        if (-not [string]::IsNullOrWhiteSpace($newAuthor)) {
+          return $newAuthor
+        }
+        Write-Host "Author name can't be empty."
+      }
+    }
+
+    if ($choice -match "^\d+$") {
+      $index = [int]$choice
+      if ($index -ge 1 -and $index -le $options.Count) {
+        return $options[$index - 1]
+      }
+    }
+
+    Write-Host "Invalid choice."
+  }
+}
+
+function Get-DetectedAuthorsByFolder {
+  param(
+    [System.IO.FileInfo[]]$CssFiles,
+    [string]$RepoRoot
+  )
+
+  $detected = @{}
+
+  foreach ($file in $CssFiles) {
+    $relativePath = To-RelativePath -Root $RepoRoot -Path $file.FullName
+    $mainFolder = Get-MainFolder -RelativePath $relativePath
+    if ([string]::IsNullOrWhiteSpace($mainFolder)) { continue }
+
+    if (-not $detected.ContainsKey($mainFolder)) {
+      $detected[$mainFolder] = [System.Collections.Generic.List[string]]::new()
+    }
+
+    $raw = Get-Content -LiteralPath $file.FullName -Raw
+    $author = Get-MetadataValue -Raw $raw -Key "author"
+    if (-not [string]::IsNullOrWhiteSpace($author)) {
+      $trimmed = $author.Trim()
+      if (-not ($detected[$mainFolder] -contains $trimmed)) {
+        $detected[$mainFolder].Add($trimmed)
+      }
+    }
+  }
+
+  $result = @{}
+  foreach ($folder in $detected.Keys) {
+    $result[$folder] = @($detected[$folder] | Sort-Object)
+  }
+
+  return $result
+}
+
+function Ensure-AuthorMappings {
+  param(
+    [System.IO.FileInfo[]]$CssFiles,
+    [string]$RepoRoot,
+    $AuthorMetadata,
+    [switch]$SkipPrompt
+  )
+
+  $foldersInCss = @(
+    $CssFiles |
+    ForEach-Object {
+      $relativePath = To-RelativePath -Root $RepoRoot -Path $_.FullName
+      Get-MainFolder -RelativePath $relativePath
+    } |
+    Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+    Sort-Object -Unique
+  )
+
+  $missingFolders = @(
+    $foldersInCss |
+    Where-Object { -not $AuthorMetadata.FolderMap.ContainsKey($_) }
+  )
+
+  $staleFolders = @(
+    $AuthorMetadata.FolderMap.Keys |
+    Where-Object { $foldersInCss -notcontains $_ } |
+    Sort-Object
+  )
+
+  if ($missingFolders.Count -eq 0 -and $staleFolders.Count -eq 0) {
+    return $false
+  }
+
+  $metadataChanged = $false
+
+  foreach ($folder in $staleFolders) {
+    if ($SkipPrompt) {
+      $AuthorMetadata.FolderMap.Remove($folder)
+      $metadataChanged = $true
+      continue
+    }
+
+    Write-Host ""
+    Write-Host "Main folder missing from CSS scan: $folder"
+    $removeFolder = Read-YesNo -Prompt "Remove this folder from theme-authors.json?" -DefaultYes $true
+    if ($removeFolder) {
+      $AuthorMetadata.FolderMap.Remove($folder)
+      $metadataChanged = $true
+    }
+  }
+
+  $detectedAuthorsByFolder = Get-DetectedAuthorsByFolder -CssFiles $CssFiles -RepoRoot $RepoRoot
+  $knownAuthors = [System.Collections.Generic.List[string]]::new()
+  foreach ($author in (Get-KnownAuthorsFromFolderMap -FolderMap $AuthorMetadata.FolderMap)) {
+    $knownAuthors.Add($author)
+  }
+
+  foreach ($folder in $missingFolders) {
+    $detectedAuthors = @()
+    if ($detectedAuthorsByFolder.ContainsKey($folder)) {
+      $detectedAuthors = @($detectedAuthorsByFolder[$folder])
+    }
+
+    if ($SkipPrompt) {
+      if ($detectedAuthors.Count -gt 0) {
+        $AuthorMetadata.FolderMap[$folder] = Build-FolderEntryFromAuthors -Authors $detectedAuthors
+        $metadataChanged = $true
+      }
+      continue
+    }
+
+    Write-Host ""
+    Write-Host "New main folder detected: $folder"
+    if ($detectedAuthors.Count -gt 0) {
+      Write-Host "Detected CSS author value(s): $($detectedAuthors -join ', ')"
+      $useDetected = Read-YesNo -Prompt "Use detected author value(s) for this folder?" -DefaultYes $true
+      if ($useDetected) {
+        $AuthorMetadata.FolderMap[$folder] = Build-FolderEntryFromAuthors -Authors $detectedAuthors
+        $metadataChanged = $true
+
+        foreach ($author in $detectedAuthors) {
+          if (-not ($knownAuthors -contains $author)) {
+            $knownAuthors.Add($author)
+          }
+        }
+        continue
+      }
+    } else {
+      Write-Host "No CSS @author value found in this folder."
+    }
+
+    $selectedAuthor = Prompt-ForAuthorSelection -Folder $folder -KnownAuthors @($knownAuthors)
+    $AuthorMetadata.FolderMap[$folder] = Build-FolderEntryFromAuthors -Authors @($selectedAuthor)
+    $metadataChanged = $true
+
+    if (-not ($knownAuthors -contains $selectedAuthor)) {
+      $knownAuthors.Add($selectedAuthor)
+    }
+  }
+
+  if ($metadataChanged) {
+    Save-AuthorMetadata -Path $AuthorMetadata.Path -SchemaVersion $AuthorMetadata.SchemaVersion -FolderMap $AuthorMetadata.FolderMap
+    Write-Output "Updated author metadata: $($AuthorMetadata.Path)"
+  }
+
+  return $metadataChanged
+}
+
 $repoRoot = Get-RepoRoot
 $outputFile = if ([System.IO.Path]::IsPathRooted($OutputPath)) {
   $OutputPath
@@ -307,6 +662,8 @@ $authorMetadata = Read-AuthorMetadata -RepoRoot $repoRoot -MetadataPath $Metadat
 $rawBaseUrl = Get-GitHubRawBaseUrl
 
 $cssFiles = Get-ChildItem -Path $repoRoot -Recurse -File -Filter "*.css" | Sort-Object FullName
+$null = Ensure-AuthorMappings -CssFiles $cssFiles -RepoRoot $repoRoot -AuthorMetadata $authorMetadata -SkipPrompt:$NoAuthorPrompt
+
 $themes = [System.Collections.Generic.List[object]]::new()
 $fallbackByFolder = @{}
 
@@ -430,7 +787,7 @@ $readmeLines.Add("## Missing Folder Mappings")
 $readmeLines.Add("")
 
 if ($fallbackFolders.Count -eq 0) {
-  $readmeLines.Add("None. All folders resolved authors from theme-authors.json. :3")
+  $readmeLines.Add("None. All folders resolved authors from theme-authors.json.")
 } else {
   $readmeLines.Add("| Folder | Fallback Author | Reason |")
   $readmeLines.Add("| --- | --- | --- |")
