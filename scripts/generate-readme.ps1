@@ -430,7 +430,7 @@ $readmeLines.Add("## Missing Folder Mappings")
 $readmeLines.Add("")
 
 if ($fallbackFolders.Count -eq 0) {
-  $readmeLines.Add("None. All folders resolved authors from theme-authors.json.")
+  $readmeLines.Add("None. All folders resolved authors from theme-authors.json. :3")
 } else {
   $readmeLines.Add("| Folder | Fallback Author | Reason |")
   $readmeLines.Add("| --- | --- | --- |")
