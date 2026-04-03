@@ -31,4 +31,4 @@ Total themes: 3
 
 ## Missing Folder Mappings
 
-None. All folders resolved authors from theme-authors.json. :3
+None. All folders resolved authors from theme-authors.json.

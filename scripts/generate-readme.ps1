@@ -1,6 +1,7 @@
 param(
   [string]$OutputPath = "README.md",
   [string]$MetadataPath = "theme-authors.json",
+  [string]$PredictPngRawUrl = "",
   [switch]$NoAuthorPrompt
 )
 
@@ -69,6 +70,36 @@ function Get-LinkPath {
   }
 
   return ($encoded -join "/")
+}
+
+function Get-RepoRelativePath {
+  param(
+    [string]$RepoRoot,
+    [string]$InputPath
+  )
+
+  if ([string]::IsNullOrWhiteSpace($InputPath)) {
+    return ""
+  }
+
+  $repoFull = [System.IO.Path]::GetFullPath($RepoRoot)
+  if (-not $repoFull.EndsWith([System.IO.Path]::DirectorySeparatorChar)) {
+    $repoFull += [System.IO.Path]::DirectorySeparatorChar
+  }
+
+  $trimmedInput = $InputPath.Trim().Trim('"')
+  $fullPath = if ([System.IO.Path]::IsPathRooted($trimmedInput)) {
+    [System.IO.Path]::GetFullPath($trimmedInput)
+  } else {
+    [System.IO.Path]::GetFullPath((Join-Path $RepoRoot $trimmedInput))
+  }
+
+  if (-not $fullPath.StartsWith($repoFull, [System.StringComparison]::OrdinalIgnoreCase)) {
+    throw "Path must be inside the repo root."
+  }
+
+  $relativePath = $fullPath.Substring($repoFull.Length)
+  return $relativePath.Replace('\', '/')
 }
 
 function Get-GitOutput {
@@ -658,8 +689,36 @@ $outputFile = if ([System.IO.Path]::IsPathRooted($OutputPath)) {
 } else {
   Join-Path $repoRoot $OutputPath
 }
-$authorMetadata = Read-AuthorMetadata -RepoRoot $repoRoot -MetadataPath $MetadataPath
 $rawBaseUrl = Get-GitHubRawBaseUrl
+
+if (-not [string]::IsNullOrWhiteSpace($PredictPngRawUrl)) {
+  if ([string]::IsNullOrWhiteSpace($rawBaseUrl)) {
+    Write-Error "Couldn't determine GitHub raw base URL from git origin."
+    exit 1
+  }
+
+  try {
+    $relativePngPath = Get-RepoRelativePath -RepoRoot $repoRoot -InputPath $PredictPngRawUrl
+  } catch {
+    Write-Error $_.Exception.Message
+    exit 1
+  }
+
+  if ([string]::IsNullOrWhiteSpace($relativePngPath)) {
+    Write-Error "Please provide a PNG path."
+    exit 1
+  }
+
+  if (-not $relativePngPath.ToLowerInvariant().EndsWith(".png")) {
+    Write-Warning "Path is not a .png file. Generating URL anyway."
+  }
+
+  $encodedPngPath = Get-LinkPath -RelativePath $relativePngPath
+  Write-Output "$rawBaseUrl/$encodedPngPath"
+  return
+}
+
+$authorMetadata = Read-AuthorMetadata -RepoRoot $repoRoot -MetadataPath $MetadataPath
 
 $cssFiles = Get-ChildItem -Path $repoRoot -Recurse -File -Filter "*.css" | Sort-Object FullName
 $null = Ensure-AuthorMappings -CssFiles $cssFiles -RepoRoot $repoRoot -AuthorMetadata $authorMetadata -SkipPrompt:$NoAuthorPrompt
