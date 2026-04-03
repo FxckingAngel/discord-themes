@@ -66,7 +66,7 @@ function Get-LinkPath {
 
   $segments = $RelativePath -split "/"
   $encoded = foreach ($segment in $segments) {
-    [System.Uri]::EscapeDataString($segment)
+    ([System.Uri]::EscapeDataString($segment)).Replace("'", "%27")
   }
 
   return ($encoded -join "/")
