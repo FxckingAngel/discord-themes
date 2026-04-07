@@ -2,10 +2,29 @@ param(
   [string]$OutputPath = "README.md",
   [string]$MetadataPath = "theme-authors.json",
   [string]$PredictPngRawUrl = "",
-  [switch]$NoAuthorPrompt
+  [switch]$NoAuthorPrompt,
+  [switch]$Doctor
 )
 
 $ErrorActionPreference = "Stop"
+
+function Write-Utf8BomFile {
+  param(
+    [string]$Path,
+    [string]$Content
+  )
+
+  if ($null -eq $Content) {
+    $Content = ""
+  }
+
+  if (-not $Content.EndsWith([Environment]::NewLine)) {
+    $Content += [Environment]::NewLine
+  }
+
+  $utf8Bom = New-Object System.Text.UTF8Encoding($true)
+  [System.IO.File]::WriteAllText($Path, $Content, $utf8Bom)
+}
 
 function Get-RepoRoot {
   return (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
@@ -180,6 +199,71 @@ function Get-MainFolder {
   }
 
   return ""
+}
+
+function Get-ThemeSearchRoots {
+  param(
+    [string]$RepoRoot,
+    $AuthorMetadata
+  )
+
+  $roots = [System.Collections.Generic.List[string]]::new()
+  $seen = @{}
+
+  $foldersFromMetadata = @()
+  if ($null -ne $AuthorMetadata -and $null -ne $AuthorMetadata.FolderMap) {
+    $foldersFromMetadata = @($AuthorMetadata.FolderMap.Keys | Sort-Object)
+  }
+
+  foreach ($folder in $foldersFromMetadata) {
+    if ([string]::IsNullOrWhiteSpace($folder)) { continue }
+
+    $candidate = Join-Path $RepoRoot $folder
+    if (-not (Test-Path -LiteralPath $candidate -PathType Container)) { continue }
+
+    $fullPath = [System.IO.Path]::GetFullPath($candidate)
+    if (-not $seen.ContainsKey($fullPath)) {
+      $seen[$fullPath] = $true
+      $roots.Add($fullPath)
+    }
+  }
+
+  $topLevelThemeDirs = Get-ChildItem -LiteralPath $RepoRoot -Directory | Where-Object { $_.Name -like "* Themes" }
+  foreach ($dir in $topLevelThemeDirs) {
+    $fullPath = [System.IO.Path]::GetFullPath($dir.FullName)
+    if (-not $seen.ContainsKey($fullPath)) {
+      $seen[$fullPath] = $true
+      $roots.Add($fullPath)
+    }
+  }
+
+  if ($roots.Count -eq 0) {
+    $roots.Add([System.IO.Path]::GetFullPath($RepoRoot))
+  }
+
+  return @($roots | Sort-Object)
+}
+
+function Get-ThemeCssFiles {
+  param(
+    [string]$RepoRoot,
+    $AuthorMetadata
+  )
+
+  $searchRoots = Get-ThemeSearchRoots -RepoRoot $RepoRoot -AuthorMetadata $AuthorMetadata
+  $filesByPath = @{}
+
+  foreach ($root in $searchRoots) {
+    $files = Get-ChildItem -LiteralPath $root -Recurse -File -Filter "*.css"
+    foreach ($file in $files) {
+      $fullPath = [System.IO.Path]::GetFullPath($file.FullName)
+      if (-not $filesByPath.ContainsKey($fullPath)) {
+        $filesByPath[$fullPath] = $file
+      }
+    }
+  }
+
+  return @($filesByPath.Values | Sort-Object FullName)
 }
 
 function Get-ObjectPropertyValue {
@@ -439,7 +523,7 @@ function Save-AuthorMetadata {
   if ($foldersOut.Count -eq 0) {
     $lines.Add("  `"folders`": {}")
     $lines.Add("}")
-    Set-Content -LiteralPath $Path -Value ($lines -join [Environment]::NewLine) -Encoding utf8
+    Write-Utf8BomFile -Path $Path -Content ($lines -join [Environment]::NewLine)
     return
   }
 
@@ -469,7 +553,7 @@ function Save-AuthorMetadata {
   $lines.Add("}")
 
   $json = $lines -join [Environment]::NewLine
-  Set-Content -LiteralPath $Path -Value $json -Encoding utf8
+  Write-Utf8BomFile -Path $Path -Content $json
 }
 
 function Read-YesNo {
@@ -693,19 +777,19 @@ $rawBaseUrl = Get-GitHubRawBaseUrl
 
 if (-not [string]::IsNullOrWhiteSpace($PredictPngRawUrl)) {
   if ([string]::IsNullOrWhiteSpace($rawBaseUrl)) {
-    Write-Error "Couldn't determine GitHub raw base URL from git origin."
+    [Console]::Error.WriteLine("Error: Couldn't determine GitHub raw base URL from git origin.")
     exit 1
   }
 
   try {
     $relativePngPath = Get-RepoRelativePath -RepoRoot $repoRoot -InputPath $PredictPngRawUrl
   } catch {
-    Write-Error $_.Exception.Message
+    [Console]::Error.WriteLine("Error: $($_.Exception.Message)")
     exit 1
   }
 
   if ([string]::IsNullOrWhiteSpace($relativePngPath)) {
-    Write-Error "Please provide a PNG path."
+    [Console]::Error.WriteLine("Error: Please provide a PNG path.")
     exit 1
   }
 
@@ -720,7 +804,113 @@ if (-not [string]::IsNullOrWhiteSpace($PredictPngRawUrl)) {
 
 $authorMetadata = Read-AuthorMetadata -RepoRoot $repoRoot -MetadataPath $MetadataPath
 
-$cssFiles = Get-ChildItem -Path $repoRoot -Recurse -File -Filter "*.css" | Sort-Object FullName
+$cssFiles = Get-ThemeCssFiles -RepoRoot $repoRoot -AuthorMetadata $authorMetadata
+
+if ($Doctor) {
+  $doctorFailures = [System.Collections.Generic.List[string]]::new()
+  $doctorWarnings = [System.Collections.Generic.List[string]]::new()
+  $requiredHeaders = @("name", "author", "version", "description")
+  $searchRoots = Get-ThemeSearchRoots -RepoRoot $repoRoot -AuthorMetadata $authorMetadata
+
+  if (-not $authorMetadata.IsLoaded) {
+    $doctorFailures.Add("Author metadata file is missing or invalid: $($authorMetadata.Path)")
+  }
+
+  if ([string]::IsNullOrWhiteSpace($rawBaseUrl)) {
+    $doctorWarnings.Add("Couldn't determine GitHub raw base URL from git origin.")
+  }
+
+  if ($cssFiles.Count -eq 0) {
+    $doctorFailures.Add("No CSS files found under theme roots.")
+  }
+
+  foreach ($file in $cssFiles) {
+    $raw = Get-Content -LiteralPath $file.FullName -Raw
+    $missingHeaders = [System.Collections.Generic.List[string]]::new()
+
+    foreach ($header in $requiredHeaders) {
+      $value = Get-MetadataValue -Raw $raw -Key $header
+      if ([string]::IsNullOrWhiteSpace($value)) {
+        $missingHeaders.Add("@$header")
+      }
+    }
+
+    if ($missingHeaders.Count -gt 0) {
+      $relativePath = To-RelativePath -Root $repoRoot -Path $file.FullName
+      $doctorWarnings.Add("$relativePath missing metadata: $($missingHeaders -join ', ')")
+    }
+  }
+
+  $foldersInCss = @(
+    $cssFiles |
+    ForEach-Object {
+      $relativePath = To-RelativePath -Root $repoRoot -Path $_.FullName
+      Get-MainFolder -RelativePath $relativePath
+    } |
+    Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+    Sort-Object -Unique
+  )
+
+  $missingFolders = @(
+    $foldersInCss |
+    Where-Object { -not $authorMetadata.FolderMap.ContainsKey($_) }
+  )
+
+  $staleFolders = @(
+    $authorMetadata.FolderMap.Keys |
+    Where-Object { $foldersInCss -notcontains $_ } |
+    Sort-Object
+  )
+
+  foreach ($folder in $missingFolders) {
+    $doctorWarnings.Add("theme-authors.json missing mapping for folder: $folder")
+  }
+
+  foreach ($folder in $staleFolders) {
+    $doctorWarnings.Add("theme-authors.json has stale folder mapping: $folder")
+  }
+
+  Write-Output "Doctor report"
+  Write-Output "Repo root: $repoRoot"
+  Write-Output "Theme roots scanned: $($searchRoots.Count)"
+  foreach ($root in $searchRoots) {
+    $relativeRoot = To-RelativePath -Root $repoRoot -Path $root
+    if ([string]::IsNullOrWhiteSpace($relativeRoot)) {
+      $relativeRoot = "."
+    }
+    Write-Output "  - $relativeRoot"
+  }
+  Write-Output "CSS files found: $($cssFiles.Count)"
+  Write-Output "Metadata file: $($authorMetadata.Path)"
+
+  if ($doctorWarnings.Count -gt 0) {
+    Write-Output ""
+    Write-Output "Warnings:"
+    foreach ($warning in $doctorWarnings) {
+      Write-Output "  - $warning"
+    }
+  }
+
+  if ($doctorFailures.Count -gt 0) {
+    [Console]::Error.WriteLine("")
+    [Console]::Error.WriteLine("Failures:")
+    foreach ($failure in $doctorFailures) {
+      [Console]::Error.WriteLine("  - $failure")
+    }
+    [Console]::Error.WriteLine("Doctor status: FAIL")
+    exit 1
+  }
+
+  Write-Output ""
+  if ($doctorWarnings.Count -gt 0) {
+    Write-Output "Doctor status: WARN"
+  } else {
+    Write-Output "Doctor status: PASS"
+  }
+
+  return
+}
+
 $null = Ensure-AuthorMappings -CssFiles $cssFiles -RepoRoot $repoRoot -AuthorMetadata $authorMetadata -SkipPrompt:$NoAuthorPrompt
 
 $themes = [System.Collections.Generic.List[object]]::new()
@@ -861,7 +1051,7 @@ if ($fallbackFolders.Count -eq 0) {
 }
 
 $content = ($readmeLines -join [Environment]::NewLine)
-Set-Content -LiteralPath $outputFile -Value $content -Encoding utf8
+Write-Utf8BomFile -Path $outputFile -Content $content
 
 Write-Output "README generated at $outputFile"
 Write-Output "CSS files processed: $($themes.Count)"
