@@ -1,6 +1,7 @@
 name: Auto-generate README on merge
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths-ignore:
