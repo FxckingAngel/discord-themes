@@ -13,18 +13,24 @@ jobs:
       contents: read
     outputs:
       safe_to_merge: ${{ steps.check.outputs.safe_to_merge }}
+      new_folders:   ${{ steps.check.outputs.new_folders }}
     steps:
       - name: Check PR changes
         id: check
         uses: actions/github-script@v7
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         with:
           script: |
             const PROTECTED_FILES = ['README.md', 'theme-authors.json', 'themecmd.cmd', 'THEMECMD.md'];
             const PROTECTED_DIRS  = ['.github/', 'scripts/'];
 
             const prAuthor = context.payload.pull_request.user.login;
+            const prNum    = context.issue.number;
+            const prTitle  = context.payload.pull_request.title;
+            const prUrl    = context.payload.pull_request.html_url;
 
-            // Read theme-authors.json from main (authoritative ownership data)
+            // Read theme-authors.json from main
             const { data: authorsFile } = await github.rest.repos.getContent({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -36,51 +42,47 @@ jobs:
             );
             const folderOwners = authorsData.folders || {};
 
-            // Get all PR files (paginated)
             const files = await github.paginate(github.rest.pulls.listFiles, {
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: context.issue.number,
+              pull_number: prNum,
             });
 
-            // Each issue: { title, what, why, fix }
-            const issues = [];
+            const issues       = [];
+            const newFolderSet = new Set();
 
             for (const file of files) {
-              // Protected root files and directories
               if (PROTECTED_FILES.includes(file.filename) ||
                   PROTECTED_DIRS.some(d => file.filename.startsWith(d))) {
                 if (file.filename === 'README.md') {
                   issues.push({
                     title: '`README.md` cannot be edited in PRs',
                     what:  `You ${file.status} \`README.md\`.`,
-                    why:   'The README is auto-generated from your theme files every time a PR merges. Any manual edits you make here will be overwritten immediately.',
-                    fix:   'Remove `README.md` from your PR. If you want something to change in the README, update your theme\'s CSS metadata (the `@name`, `@description`, `@author`, etc. comment block at the top of your `.css` file) and the README will reflect it on merge.',
+                    why:   'The README is auto-generated from your theme files every time a PR merges. Manual edits will be overwritten immediately.',
+                    fix:   'Remove `README.md` from your PR. To change what appears in the README, update your theme\'s CSS metadata (`@name`, `@description`, `@author`, etc.) and the README will reflect it on merge.',
                   });
                 } else {
                   issues.push({
                     title: `\`${file.filename}\` is a protected file`,
                     what:  `You ${file.status} \`${file.filename}\`.`,
                     why:   'This file is managed exclusively by the repo owner and cannot be changed through pull requests.',
-                    fix:   `Remove \`${file.filename}\` from your PR. If you believe a change here is necessary, open an issue and describe what you need.`,
+                    fix:   `Remove \`${file.filename}\` from your PR. If you believe a change is necessary, open an issue describing what you need.`,
                   });
                 }
                 continue;
               }
 
-              // Root-level files not already covered
               const topFolder = file.filename.includes('/') ? file.filename.split('/')[0] : null;
               if (!topFolder) {
                 issues.push({
                   title: `\`${file.filename}\` is a root-level file`,
                   what:  `You ${file.status} \`${file.filename}\` at the repository root.`,
                   why:   'Root-level files are managed by the repo owner only.',
-                  fix:   `Remove \`${file.filename}\` from your PR. All theme files must live inside a theme folder (e.g. \`My Themes/my-theme/\`).`,
+                  fix:   `Remove \`${file.filename}\` from your PR. All theme files must live inside a theme folder.`,
                 });
                 continue;
               }
 
-              // Folder ownership check — prefer `github` field, fall back to `author`
               if (folderOwners[topFolder]) {
                 const entry        = folderOwners[topFolder];
                 const folderGithub = (entry.github || entry.author || '').toLowerCase();
@@ -89,24 +91,51 @@ jobs:
                   issues.push({
                     title: `\`${topFolder}/\` belongs to **${displayName}**`,
                     what:  `You ${file.status} \`${file.filename}\`, which is inside \`${topFolder}/\` — a folder owned by **${displayName}**, not you.`,
-                    why:   'Contributors can only add, edit, or delete files within their own theme folder. Touching someone else\'s folder is not allowed.',
-                    fix:   `Remove any changes to files inside \`${topFolder}/\` from your PR. If you want to suggest a change to **${displayName}**'s theme, open an issue tagging them instead.`,
+                    why:   'Contributors can only add, edit, or delete files within their own theme folder.',
+                    fix:   `Remove any changes to files inside \`${topFolder}/\`. If you want to suggest a change to **${displayName}**'s theme, open an issue tagging them instead.`,
                   });
                 }
               } else {
-                // Unclaimed folder — only additions allowed
                 if (file.status !== 'added') {
                   issues.push({
                     title: `\`${topFolder}/\` is not a registered folder`,
                     what:  `You ${file.status} \`${file.filename}\` inside \`${topFolder}/\`, which isn't registered in \`theme-authors.json\`.`,
-                    why:   'Modifying or deleting files in an unregistered folder isn\'t allowed through auto-merge because ownership can\'t be verified.',
-                    fix:   `Only **add** new files to \`${topFolder}/\`. If you need to edit or delete existing files there, contact the repo owner to get the folder registered under your name first.`,
+                    why:   'Modifying or deleting files in an unregistered folder isn\'t allowed because ownership can\'t be verified.',
+                    fix:   `Only **add** new files to \`${topFolder}/\`. To register your folder, contact the repo owner.`,
                   });
+                } else {
+                  newFolderSet.add(topFolder);
                 }
               }
             }
 
+            // Check if PR author is a repo collaborator (added by owner)
+            let isCollaborator = false;
+            try {
+              await github.rest.repos.checkCollaborator({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                username: prAuthor,
+              });
+              isCollaborator = true;
+            } catch (_) {
+              isCollaborator = false;
+            }
+
+            // Discord helper
+            async function notifyDiscord(embed) {
+              if (!process.env.DISCORD_WEBHOOK) return;
+              try {
+                await fetch(process.env.DISCORD_WEBHOOK, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ embeds: [{ ...embed, url: prUrl }] }),
+                });
+              } catch (_) {}
+            }
+
             if (issues.length > 0) {
+              // Build PR comment
               const sections = issues.map((issue, i) => [
                 `### ${i + 1}. ${issue.title}`,
                 `**What happened:** ${issue.what}`,
@@ -114,25 +143,56 @@ jobs:
                 `**How to fix it:** ${issue.fix}`,
               ].join('\n'));
 
-              const body = [
-                `## Auto-merge blocked (${issues.length} issue${issues.length > 1 ? 's' : ''})`,
-                '',
-                'Fix the issue(s) below, then push to your branch — the check will re-run automatically.',
-                '',
-                '---',
-                '',
-                sections.join('\n\n---\n\n'),
-              ].join('\n');
-
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body,
+                issue_number: prNum,
+                body: [
+                  `## Auto-merge blocked (${issues.length} issue${issues.length > 1 ? 's' : ''})`,
+                  '',
+                  'Fix the issue(s) below, then push to your branch — the check will re-run automatically.',
+                  '',
+                  '---',
+                  '',
+                  sections.join('\n\n---\n\n'),
+                ].join('\n'),
               });
+
+              const issueList = issues.map(i => `• ${i.title}`).join('\n');
+
+              if (isCollaborator) {
+                await notifyDiscord({
+                  title: `⚠️ Collaborator PR Blocked — #${prNum}`,
+                  description: `**@${prAuthor}** (collaborator) submitted [PR #${prNum}: "${prTitle}"](${prUrl}) but it was **rejected**.\n\n**Violations:**\n${issueList}`,
+                  color: 0xe67e22,
+                });
+              } else {
+                await notifyDiscord({
+                  title: `🚫 Unknown User PR Rejected — #${prNum}`,
+                  description: `**@${prAuthor}** (not a collaborator) submitted [PR #${prNum}: "${prTitle}"](${prUrl}) and was **rejected**.\n\n**Violations:**\n${issueList}`,
+                  color: 0xe74c3c,
+                });
+              }
+
               core.setFailed(`PR blocked: ${issues.length} issue(s) found.`);
+
+            } else if (!isCollaborator) {
+              // Clean PR from a non-collaborator — flag for manual review, don't auto-merge
+              await notifyDiscord({
+                title: `👀 PR Needs Manual Review — #${prNum}`,
+                description: `**@${prAuthor}** is not a collaborator but submitted a clean [PR #${prNum}: "${prTitle}"](${prUrl}).\n\nTheir changes follow all the rules but they need to be manually verified before merging.`,
+                color: 0xf1c40f,
+              });
+              // Don't fail — PR stays open and passing so you can manually merge it
+
             } else {
+              // Collaborator with clean changes — queue for auto-merge
               core.setOutput('safe_to_merge', 'true');
+              if (newFolderSet.size > 0) {
+                core.setOutput('new_folders', JSON.stringify(
+                  [...newFolderSet].map(f => ({ folder: f, github: prAuthor }))
+                ));
+              }
             }
 
   auto-merge:
@@ -148,8 +208,61 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh pr merge "${{ github.event.pull_request.number }}" --squash --repo "${{ github.repository }}"
 
+      - name: Notify Discord
+        if: success()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          jq -n \
+            --arg title "✅ PR Auto-Merged — #${{ github.event.pull_request.number }}" \
+            --arg desc  "**@${{ github.event.pull_request.user.login }}**'s [PR #${{ github.event.pull_request.number }}: \"${{ github.event.pull_request.title }}\"](https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }}) was **automatically merged**." \
+            --arg url   "https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }}" \
+            '{"embeds":[{"title":$title,"description":$desc,"color":3066993,"url":$url}]}' \
+          | curl -s -X POST "$DISCORD_WEBHOOK" -H "Content-Type: application/json" -d @-
+
+  update-authors:
+    needs: [validate, auto-merge]
+    if: needs.validate.outputs.new_folders != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.README_PUSH_TOKEN }}
+
+      - name: Add new contributors to theme-authors.json
+        uses: actions/github-script@v7
+        env:
+          NEW_FOLDERS: ${{ needs.validate.outputs.new_folders }}
+        with:
+          script: |
+            const fs = require('fs');
+            const newFolders = JSON.parse(process.env.NEW_FOLDERS);
+
+            const raw  = fs.readFileSync('theme-authors.json', 'utf8').replace(/^\uFEFF/, '');
+            const data = JSON.parse(raw);
+
+            for (const { folder, github: ghLogin } of newFolders) {
+              const { data: user } = await github.rest.users.getByUsername({ username: ghLogin });
+              const displayName = user.name || ghLogin;
+              data.folders[folder] = { author: displayName, github: ghLogin };
+            }
+
+            fs.writeFileSync('theme-authors.json', '\uFEFF' + JSON.stringify(data, null, 2) + '\n', 'utf8');
+
+      - name: Commit updated theme-authors.json
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git diff --quiet theme-authors.json && echo "No changes." || \
+            (git add theme-authors.json && git commit -m "chore: register new contributor(s) [skip ci]" && git push)
+
   generate-readme:
-    needs: auto-merge
+    needs: [auto-merge, update-authors]
+    if: always() && needs.auto-merge.result == 'success'
     runs-on: windows-latest
     permissions:
       contents: write
@@ -167,4 +280,5 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git diff --quiet README.md && echo "README unchanged." || (git add README.md && git commit -m "chore: auto-update README [skip ci]" && git push)
+          git diff --quiet README.md && echo "README unchanged." || \
+            (git add README.md && git commit -m "chore: auto-update README [skip ci]" && git push)
