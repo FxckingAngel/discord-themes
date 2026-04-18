@@ -19,6 +19,17 @@ body:
     validations:
       required: true
 
+  - type: dropdown
+    id: author
+    attributes:
+      label: Theme Author
+      description: Who made the theme?
+      options:
+        - 8Bit
+        - Silverfox0338
+    validations:
+      required: true
+
   - type: input
     id: theme
     attributes:
