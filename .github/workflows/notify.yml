@@ -4,8 +4,47 @@ on:
   workflow_run:
     workflows: ["Validate and auto-merge PRs"]
     types: [completed]
+  issues:
+    types: [opened]
 
 jobs:
+  issue:
+    if: github.event_name == 'issues'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send issue notification
+        env:
+          HOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          LABEL="${{ github.event.issue.labels[0].name }}"
+          AUTHOR="${{ github.event.issue.user.login }}"
+          TITLE="${{ github.event.issue.title }}"
+          URL="${{ github.event.issue.html_url }}"
+          NUM="${{ github.event.issue.number }}"
+
+          case "$LABEL" in
+            bug)
+              COLOR=15158332
+              BADGE="Bug Report"
+              ;;
+            suggestion)
+              COLOR=3447003
+              BADGE="Theme Suggestion"
+              ;;
+            *)
+              COLOR=9807270
+              BADGE="General"
+              ;;
+          esac
+
+          jq -n \
+            --arg title "New ${BADGE} — #${NUM}" \
+            --arg desc  "**@${AUTHOR}** opened [issue #${NUM}: \"${TITLE}\"](${URL})" \
+            --argjson color "$COLOR" \
+            --arg url   "$URL" \
+            '{"embeds":[{"title":$title,"description":$desc,"color":$color,"url":$url}]}' \
+          | curl -s -X POST "$HOOK" -H "Content-Type: application/json" -d @-
+
   run:
     runs-on: ubuntu-latest
     permissions:
