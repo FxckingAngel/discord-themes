@@ -1,0 +1,25 @@
+name: Auto-generate README on merge
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'README.md'
+
+jobs:
+  generate:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate README
+        run: pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/generate-readme.ps1 -NoAuthorPrompt
+
+      - name: Commit updated README
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git diff --quiet README.md && echo "No changes to README." || (git add README.md && git commit -m "chore: auto-update README [skip ci]" && git push)
+        shell: bash
