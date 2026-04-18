@@ -1,0 +1,68 @@
+name: Post-run events
+
+on:
+  workflow_run:
+    workflows: ["Validate and auto-merge PRs"]
+    types: [completed]
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+    steps:
+      - name: Download payload
+        uses: actions/download-artifact@v4
+        id: download
+        with:
+          name: pr-notification
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      - name: Send notification
+        if: steps.download.outcome == 'success'
+        env:
+          HOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          PAYLOAD=$(cat notification.json)
+          OUTCOME=$(echo "$PAYLOAD" | jq -r '.outcome')
+          PR_NUM=$(echo "$PAYLOAD"  | jq -r '.prNumber')
+          PR_TITLE=$(echo "$PAYLOAD" | jq -r '.prTitle')
+          PR_URL=$(echo "$PAYLOAD"  | jq -r '.prUrl')
+          PR_AUTHOR=$(echo "$PAYLOAD" | jq -r '.prAuthor')
+          ISSUE_LIST=$(echo "$PAYLOAD" | jq -r '.issues | map("• " + .) | join("\n")')
+
+          case "$OUTCOME" in
+            auto_merged)
+              COLOR=3066993
+              TITLE="PR Auto-Merged — #${PR_NUM}"
+              DESC="**@${PR_AUTHOR}**'s [PR #${PR_NUM}: \"${PR_TITLE}\"](${PR_URL}) was automatically merged."
+              ;;
+            rejected_collaborator)
+              COLOR=15127042
+              TITLE="Collaborator PR Blocked — #${PR_NUM}"
+              DESC="**@${PR_AUTHOR}** (collaborator) submitted [PR #${PR_NUM}: \"${PR_TITLE}\"](${PR_URL}) but it was rejected.\n\n**Violations:**\n${ISSUE_LIST}"
+              ;;
+            rejected_unknown)
+              COLOR=15158332
+              TITLE="Unknown User PR Rejected — #${PR_NUM}"
+              DESC="**@${PR_AUTHOR}** (not a collaborator) submitted [PR #${PR_NUM}: \"${PR_TITLE}\"](${PR_URL}) and was rejected.\n\n**Violations:**\n${ISSUE_LIST}"
+              ;;
+            needs_review)
+              COLOR=16766720
+              TITLE="PR Needs Manual Review — #${PR_NUM}"
+              DESC="**@${PR_AUTHOR}** is not a collaborator but submitted a clean [PR #${PR_NUM}: \"${PR_TITLE}\"](${PR_URL}). Manual review required before merging."
+              ;;
+            *)
+              exit 0
+              ;;
+          esac
+
+          jq -n \
+            --arg title "$TITLE" \
+            --arg desc  "$DESC" \
+            --argjson color "$COLOR" \
+            --arg url   "$PR_URL" \
+            '{"embeds":[{"title":$title,"description":$desc,"color":$color,"url":$url}]}' \
+          | curl -s -X POST "$HOOK" -H "Content-Type: application/json" -d @-

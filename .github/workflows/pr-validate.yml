@@ -12,14 +12,14 @@ jobs:
       pull-requests: write
       contents: read
     outputs:
-      safe_to_merge: ${{ steps.check.outputs.safe_to_merge }}
-      new_folders:   ${{ steps.check.outputs.new_folders }}
+      safe_to_merge:  ${{ steps.check.outputs.safe_to_merge }}
+      new_folders:    ${{ steps.check.outputs.new_folders }}
+      is_collaborator: ${{ steps.check.outputs.is_collaborator }}
+      issues_json:    ${{ steps.check.outputs.issues_json }}
     steps:
       - name: Check PR changes
         id: check
         uses: actions/github-script@v7
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         with:
           script: |
             const PROTECTED_FILES = ['README.md', 'theme-authors.json', 'themecmd.cmd', 'THEMECMD.md'];
@@ -27,10 +27,7 @@ jobs:
 
             const prAuthor = context.payload.pull_request.user.login;
             const prNum    = context.issue.number;
-            const prTitle  = context.payload.pull_request.title;
-            const prUrl    = context.payload.pull_request.html_url;
 
-            // Read theme-authors.json from main
             const { data: authorsFile } = await github.rest.repos.getContent({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -109,7 +106,7 @@ jobs:
               }
             }
 
-            // Check if PR author is a repo collaborator (added by owner)
+            // Check collaborator status
             let isCollaborator = false;
             try {
               await github.rest.repos.checkCollaborator({
@@ -118,24 +115,12 @@ jobs:
                 username: prAuthor,
               });
               isCollaborator = true;
-            } catch (_) {
-              isCollaborator = false;
-            }
+            } catch (_) {}
 
-            // Discord helper
-            async function notifyDiscord(embed) {
-              if (!process.env.DISCORD_WEBHOOK) return;
-              try {
-                await fetch(process.env.DISCORD_WEBHOOK, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ embeds: [{ ...embed, url: prUrl }] }),
-                });
-              } catch (_) {}
-            }
+            core.setOutput('is_collaborator', String(isCollaborator));
+            core.setOutput('issues_json', JSON.stringify(issues.map(i => i.title)));
 
             if (issues.length > 0) {
-              // Build PR comment
               const sections = issues.map((issue, i) => [
                 `### ${i + 1}. ${issue.title}`,
                 `**What happened:** ${issue.what}`,
@@ -157,36 +142,13 @@ jobs:
                   sections.join('\n\n---\n\n'),
                 ].join('\n'),
               });
-
-              const issueList = issues.map(i => `• ${i.title}`).join('\n');
-
-              if (isCollaborator) {
-                await notifyDiscord({
-                  title: `⚠️ Collaborator PR Blocked — #${prNum}`,
-                  description: `**@${prAuthor}** (collaborator) submitted [PR #${prNum}: "${prTitle}"](${prUrl}) but it was **rejected**.\n\n**Violations:**\n${issueList}`,
-                  color: 0xe67e22,
-                });
-              } else {
-                await notifyDiscord({
-                  title: `🚫 Unknown User PR Rejected — #${prNum}`,
-                  description: `**@${prAuthor}** (not a collaborator) submitted [PR #${prNum}: "${prTitle}"](${prUrl}) and was **rejected**.\n\n**Violations:**\n${issueList}`,
-                  color: 0xe74c3c,
-                });
-              }
-
               core.setFailed(`PR blocked: ${issues.length} issue(s) found.`);
 
             } else if (!isCollaborator) {
-              // Clean PR from a non-collaborator — flag for manual review, don't auto-merge
-              await notifyDiscord({
-                title: `👀 PR Needs Manual Review — #${prNum}`,
-                description: `**@${prAuthor}** is not a collaborator but submitted a clean [PR #${prNum}: "${prTitle}"](${prUrl}).\n\nTheir changes follow all the rules but they need to be manually verified before merging.`,
-                color: 0xf1c40f,
-              });
-              // Don't fail — PR stays open and passing so you can manually merge it
+              core.setOutput('safe_to_merge', 'false');
+              // Clean but not a collaborator — leave open for manual review (don't fail)
 
             } else {
-              // Collaborator with clean changes — queue for auto-merge
               core.setOutput('safe_to_merge', 'true');
               if (newFolderSet.size > 0) {
                 core.setOutput('new_folders', JSON.stringify(
@@ -208,18 +170,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh pr merge "${{ github.event.pull_request.number }}" --squash --repo "${{ github.repository }}"
 
-      - name: Notify Discord
-        if: success()
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-        run: |
-          jq -n \
-            --arg title "✅ PR Auto-Merged — #${{ github.event.pull_request.number }}" \
-            --arg desc  "**@${{ github.event.pull_request.user.login }}**'s [PR #${{ github.event.pull_request.number }}: \"${{ github.event.pull_request.title }}\"](https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }}) was **automatically merged**." \
-            --arg url   "https://github.com/${{ github.repository }}/pull/${{ github.event.pull_request.number }}" \
-            '{"embeds":[{"title":$title,"description":$desc,"color":3066993,"url":$url}]}' \
-          | curl -s -X POST "$DISCORD_WEBHOOK" -H "Content-Type: application/json" -d @-
-
   update-authors:
     needs: [validate, auto-merge]
     if: needs.validate.outputs.new_folders != ''
@@ -240,16 +190,13 @@ jobs:
           script: |
             const fs = require('fs');
             const newFolders = JSON.parse(process.env.NEW_FOLDERS);
-
             const raw  = fs.readFileSync('theme-authors.json', 'utf8').replace(/^\uFEFF/, '');
             const data = JSON.parse(raw);
-
             for (const { folder, github: ghLogin } of newFolders) {
               const { data: user } = await github.rest.users.getByUsername({ username: ghLogin });
               const displayName = user.name || ghLogin;
               data.folders[folder] = { author: displayName, github: ghLogin };
             }
-
             fs.writeFileSync('theme-authors.json', '\uFEFF' + JSON.stringify(data, null, 2) + '\n', 'utf8');
 
       - name: Commit updated theme-authors.json
@@ -282,3 +229,53 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git diff --quiet README.md && echo "README unchanged." || \
             (git add README.md && git commit -m "chore: auto-update README [skip ci]" && git push)
+
+  summarize:
+    needs: [validate, auto-merge]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build notification payload
+        uses: actions/github-script@v7
+        env:
+          IS_COLLABORATOR:   ${{ needs.validate.outputs.is_collaborator }}
+          ISSUES_JSON:       ${{ needs.validate.outputs.issues_json }}
+          VALIDATE_RESULT:   ${{ needs.validate.result }}
+          AUTO_MERGE_RESULT: ${{ needs.auto-merge.result }}
+        with:
+          script: |
+            const fs = require('fs');
+            const isCollaborator    = process.env.IS_COLLABORATOR === 'true';
+            const validateResult    = process.env.VALIDATE_RESULT;
+            const autoMergeResult   = process.env.AUTO_MERGE_RESULT;
+            const issues            = process.env.ISSUES_JSON ? JSON.parse(process.env.ISSUES_JSON) : [];
+
+            let outcome;
+            if (autoMergeResult === 'success') {
+              outcome = 'auto_merged';
+            } else if (validateResult === 'failure' && isCollaborator) {
+              outcome = 'rejected_collaborator';
+            } else if (validateResult === 'failure' && !isCollaborator) {
+              outcome = 'rejected_unknown';
+            } else if (validateResult === 'success' && !isCollaborator) {
+              outcome = 'needs_review';
+            } else {
+              return; // Nothing to notify
+            }
+
+            const payload = {
+              prNumber: context.payload.pull_request.number,
+              prTitle:  context.payload.pull_request.title,
+              prUrl:    context.payload.pull_request.html_url,
+              prAuthor: context.payload.pull_request.user.login,
+              outcome,
+              issues,
+            };
+
+            fs.writeFileSync('notification.json', JSON.stringify(payload));
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pr-notification
+          path: notification.json
+          retention-days: 1
