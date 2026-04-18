@@ -1,0 +1,119 @@
+name: Validate and auto-merge PRs
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    outputs:
+      safe_to_merge: ${{ steps.check.outputs.safe_to_merge }}
+    steps:
+      - name: Check PR changes
+        id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const PROTECTED_FILES = ['README.md', 'theme-authors.json', 'themecmd.cmd', 'THEMECMD.md'];
+            const PROTECTED_DIRS  = ['.github/', 'scripts/'];
+
+            const prAuthor = context.payload.pull_request.user.login;
+
+            // Read theme-authors.json from main (authoritative ownership data)
+            const { data: authorsFile } = await github.rest.repos.getContent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path: 'theme-authors.json',
+              ref: 'main'
+            });
+            const authorsData = JSON.parse(Buffer.from(authorsFile.content, 'base64').toString());
+            const folderOwners = authorsData.folders || {};
+
+            // Get all PR files (paginated)
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+
+            const problems = [];
+
+            for (const file of files) {
+              // Block protected root files and directories
+              if (PROTECTED_FILES.includes(file.filename) ||
+                  PROTECTED_DIRS.some(d => file.filename.startsWith(d))) {
+                if (file.filename === 'README.md') {
+                  problems.push(`\`README.md\` is auto-generated on merge and cannot be edited in PRs.`);
+                } else {
+                  problems.push(`\`${file.filename}\` is a protected file — only the repo owner can change it.`);
+                }
+                continue;
+              }
+
+              // Block root-level files not already covered above
+              const topFolder = file.filename.includes('/') ? file.filename.split('/')[0] : null;
+              if (!topFolder) {
+                problems.push(`\`${file.filename}\` is a root-level file — only the repo owner can add or modify these.`);
+                continue;
+              }
+
+              // Check folder ownership
+              if (folderOwners[topFolder]) {
+                const folderOwner = folderOwners[topFolder].author;
+                if (folderOwner.toLowerCase() !== prAuthor.toLowerCase()) {
+                  problems.push(
+                    `\`${file.filename}\` is inside \`${topFolder}/\`, which belongs to **${folderOwner}**. You can only modify files in your own folder.`
+                  );
+                }
+                // Owner's own folder: add/edit/delete all allowed — no extra check needed
+              } else {
+                // Unclaimed/new folder: only additions allowed
+                if (file.status !== 'added') {
+                  problems.push(
+                    `\`${file.filename}\` was **${file.status}** in \`${topFolder}/\`, which isn't registered in \`theme-authors.json\`. Only adding new files to unregistered folders is allowed.`
+                  );
+                }
+              }
+            }
+
+            if (problems.length > 0) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: [
+                  '## This PR cannot be auto-merged',
+                  '',
+                  'The following issues need to be fixed before this can merge:',
+                  '',
+                  ...problems.map(p => `- ${p}`),
+                  '',
+                  '**Rules:**',
+                  '- You can freely add, edit, or delete files inside **your own** theme folder.',
+                  '- You can add new files to a folder that isn\'t registered yet (new theme submission).',
+                  '- You **cannot** touch `README.md`, protected tooling files, or another contributor\'s folder.',
+                  '- The README is auto-generated when PRs merge — do not edit it directly.',
+                ].join('\n')
+              });
+              core.setFailed('PR contains changes that require manual review.');
+            } else {
+              core.setOutput('safe_to_merge', 'true');
+            }
+
+  auto-merge:
+    needs: validate
+    if: needs.validate.outputs.safe_to_merge == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+    steps:
+      - name: Merge PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr merge "${{ github.event.pull_request.number }}" --squash --repo "${{ github.repository }}"
