@@ -62,12 +62,14 @@ jobs:
                 continue;
               }
 
-              // Check folder ownership
+              // Check folder ownership — use `github` field if present, fall back to `author`
               if (folderOwners[topFolder]) {
-                const folderOwner = folderOwners[topFolder].author;
-                if (folderOwner.toLowerCase() !== prAuthor.toLowerCase()) {
+                const entry = folderOwners[topFolder];
+                const folderGithub = (entry.github || entry.author || '').toLowerCase();
+                const displayName  = entry.author || entry.github || topFolder;
+                if (folderGithub !== prAuthor.toLowerCase()) {
                   problems.push(
-                    `\`${file.filename}\` is inside \`${topFolder}/\`, which belongs to **${folderOwner}**. You can only modify files in your own folder.`
+                    `\`${file.filename}\` is inside \`${topFolder}/\`, which belongs to **${displayName}**. You can only modify files in your own folder.`
                   );
                 }
                 // Owner's own folder: add/edit/delete all allowed — no extra check needed

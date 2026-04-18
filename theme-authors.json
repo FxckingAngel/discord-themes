@@ -1,11 +1,13 @@
-﻿{
+{
   "schemaVersion": 1,
   "folders": {
     "8Bit Themes": {
-      "author": "8Bit"
+      "author": "8Bit",
+      "github": "8-bitStudio"
     },
     "Silver Themes": {
-      "author": "Silverfox0338"
+      "author": "Silverfox0338",
+      "github": "Silverfox0338"
     }
   }
 }
