@@ -31,7 +31,7 @@ jobs:
               path: 'theme-authors.json',
               ref: 'main'
             });
-            const authorsData = JSON.parse(Buffer.from(authorsFile.content, 'base64').toString());
+            const authorsData = JSON.parse(Buffer.from(authorsFile.content, 'base64').toString('utf8').replace(/^\uFEFF/, ''));
             const folderOwners = authorsData.folders || {};
 
             // Get all PR files (paginated)
