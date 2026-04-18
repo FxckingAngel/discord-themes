@@ -31,7 +31,9 @@ jobs:
               path: 'theme-authors.json',
               ref: 'main'
             });
-            const authorsData = JSON.parse(Buffer.from(authorsFile.content, 'base64').toString('utf8').replace(/^\uFEFF/, ''));
+            const authorsData = JSON.parse(
+              Buffer.from(authorsFile.content, 'base64').toString('utf8').replace(/^\uFEFF/, '')
+            );
             const folderOwners = authorsData.folders || {};
 
             // Get all PR files (paginated)
@@ -41,68 +43,94 @@ jobs:
               pull_number: context.issue.number,
             });
 
-            const problems = [];
+            // Each issue: { title, what, why, fix }
+            const issues = [];
 
             for (const file of files) {
-              // Block protected root files and directories
+              // Protected root files and directories
               if (PROTECTED_FILES.includes(file.filename) ||
                   PROTECTED_DIRS.some(d => file.filename.startsWith(d))) {
                 if (file.filename === 'README.md') {
-                  problems.push(`\`README.md\` is auto-generated on merge and cannot be edited in PRs.`);
+                  issues.push({
+                    title: '`README.md` cannot be edited in PRs',
+                    what:  `You ${file.status} \`README.md\`.`,
+                    why:   'The README is auto-generated from your theme files every time a PR merges. Any manual edits you make here will be overwritten immediately.',
+                    fix:   'Remove `README.md` from your PR. If you want something to change in the README, update your theme\'s CSS metadata (the `@name`, `@description`, `@author`, etc. comment block at the top of your `.css` file) and the README will reflect it on merge.',
+                  });
                 } else {
-                  problems.push(`\`${file.filename}\` is a protected file — only the repo owner can change it.`);
+                  issues.push({
+                    title: `\`${file.filename}\` is a protected file`,
+                    what:  `You ${file.status} \`${file.filename}\`.`,
+                    why:   'This file is managed exclusively by the repo owner and cannot be changed through pull requests.',
+                    fix:   `Remove \`${file.filename}\` from your PR. If you believe a change here is necessary, open an issue and describe what you need.`,
+                  });
                 }
                 continue;
               }
 
-              // Block root-level files not already covered above
+              // Root-level files not already covered
               const topFolder = file.filename.includes('/') ? file.filename.split('/')[0] : null;
               if (!topFolder) {
-                problems.push(`\`${file.filename}\` is a root-level file — only the repo owner can add or modify these.`);
+                issues.push({
+                  title: `\`${file.filename}\` is a root-level file`,
+                  what:  `You ${file.status} \`${file.filename}\` at the repository root.`,
+                  why:   'Root-level files are managed by the repo owner only.',
+                  fix:   `Remove \`${file.filename}\` from your PR. All theme files must live inside a theme folder (e.g. \`My Themes/my-theme/\`).`,
+                });
                 continue;
               }
 
-              // Check folder ownership — use `github` field if present, fall back to `author`
+              // Folder ownership check — prefer `github` field, fall back to `author`
               if (folderOwners[topFolder]) {
-                const entry = folderOwners[topFolder];
+                const entry        = folderOwners[topFolder];
                 const folderGithub = (entry.github || entry.author || '').toLowerCase();
                 const displayName  = entry.author || entry.github || topFolder;
                 if (folderGithub !== prAuthor.toLowerCase()) {
-                  problems.push(
-                    `\`${file.filename}\` is inside \`${topFolder}/\`, which belongs to **${displayName}**. You can only modify files in your own folder.`
-                  );
+                  issues.push({
+                    title: `\`${topFolder}/\` belongs to **${displayName}**`,
+                    what:  `You ${file.status} \`${file.filename}\`, which is inside \`${topFolder}/\` — a folder owned by **${displayName}**, not you.`,
+                    why:   'Contributors can only add, edit, or delete files within their own theme folder. Touching someone else\'s folder is not allowed.',
+                    fix:   `Remove any changes to files inside \`${topFolder}/\` from your PR. If you want to suggest a change to **${displayName}**'s theme, open an issue tagging them instead.`,
+                  });
                 }
-                // Owner's own folder: add/edit/delete all allowed — no extra check needed
               } else {
-                // Unclaimed/new folder: only additions allowed
+                // Unclaimed folder — only additions allowed
                 if (file.status !== 'added') {
-                  problems.push(
-                    `\`${file.filename}\` was **${file.status}** in \`${topFolder}/\`, which isn't registered in \`theme-authors.json\`. Only adding new files to unregistered folders is allowed.`
-                  );
+                  issues.push({
+                    title: `\`${topFolder}/\` is not a registered folder`,
+                    what:  `You ${file.status} \`${file.filename}\` inside \`${topFolder}/\`, which isn't registered in \`theme-authors.json\`.`,
+                    why:   'Modifying or deleting files in an unregistered folder isn\'t allowed through auto-merge because ownership can\'t be verified.',
+                    fix:   `Only **add** new files to \`${topFolder}/\`. If you need to edit or delete existing files there, contact the repo owner to get the folder registered under your name first.`,
+                  });
                 }
               }
             }
 
-            if (problems.length > 0) {
+            if (issues.length > 0) {
+              const sections = issues.map((issue, i) => [
+                `### ${i + 1}. ${issue.title}`,
+                `**What happened:** ${issue.what}`,
+                `**Why this is blocked:** ${issue.why}`,
+                `**How to fix it:** ${issue.fix}`,
+              ].join('\n'));
+
+              const body = [
+                `## Auto-merge blocked (${issues.length} issue${issues.length > 1 ? 's' : ''})`,
+                '',
+                'Fix the issue(s) below, then push to your branch — the check will re-run automatically.',
+                '',
+                '---',
+                '',
+                sections.join('\n\n---\n\n'),
+              ].join('\n');
+
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
-                body: [
-                  '## This PR cannot be auto-merged',
-                  '',
-                  'The following issues need to be fixed before this can merge:',
-                  '',
-                  ...problems.map(p => `- ${p}`),
-                  '',
-                  '**Rules:**',
-                  '- You can freely add, edit, or delete files inside **your own** theme folder.',
-                  '- You can add new files to a folder that isn\'t registered yet (new theme submission).',
-                  '- You **cannot** touch `README.md`, protected tooling files, or another contributor\'s folder.',
-                  '- The README is auto-generated when PRs merge — do not edit it directly.',
-                ].join('\n')
+                body,
               });
-              core.setFailed('PR contains changes that require manual review.');
+              core.setFailed(`PR blocked: ${issues.length} issue(s) found.`);
             } else {
               core.setOutput('safe_to_merge', 'true');
             }
@@ -119,3 +147,24 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh pr merge "${{ github.event.pull_request.number }}" --squash --repo "${{ github.repository }}"
+
+  generate-readme:
+    needs: auto-merge
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate README
+        run: pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/generate-readme.ps1 -NoAuthorPrompt
+
+      - name: Commit updated README
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git diff --quiet README.md && echo "README unchanged." || (git add README.md && git commit -m "chore: auto-update README [skip ci]" && git push)
