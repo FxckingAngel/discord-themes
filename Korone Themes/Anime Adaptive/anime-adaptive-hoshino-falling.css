@@ -25,3 +25,10 @@
   --background-saturation: 1.03;
   --transparency: 0.83;
 }
+
+.theme-dark {
+  --background-shading: rgba(20, 22, 28, 0.62);
+  --card-shading: rgba(24, 27, 34, 0.43);
+  --popout-shading: rgba(14, 16, 22, 0.80);
+  --modal-shading: rgba(18, 20, 26, 0.66);
+}
