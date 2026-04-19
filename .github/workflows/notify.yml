@@ -99,12 +99,12 @@ jobs:
             needs_trust_approval)
               COLOR=16766720
               TITLE="PR Needs Trust Approval — #${PR_NUM}"
-              DESC="**@${PR_AUTHOR}** is registered but not yet trusted. They submitted a clean [PR #${PR_NUM}: \"${PR_TITLE}\"](${PR_URL}). Set \`trusted: true\` in \`theme-authors.json\` to enable auto-merge."
+              DESC="<@1235005349883412550> **@${PR_AUTHOR}** is registered but not yet trusted. They submitted a clean [PR #${PR_NUM}: \"${PR_TITLE}\"](${PR_URL}). Set \`trusted: true\` in \`theme-authors.json\` to enable auto-merge."
               ;;
             needs_review)
               COLOR=16766720
               TITLE="PR Needs Manual Review — #${PR_NUM}"
-              DESC="**@${PR_AUTHOR}** is a new contributor. They submitted a clean [PR #${PR_NUM}: \"${PR_TITLE}\"](${PR_URL}). Review and merge to register them."
+              DESC="<@1235005349883412550> **@${PR_AUTHOR}** is a new contributor. They submitted a clean [PR #${PR_NUM}: \"${PR_TITLE}\"](${PR_URL}). Review and merge to register them."
               ;;
             *)
               exit 0
