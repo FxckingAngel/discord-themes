@@ -1,0 +1,35 @@
+/**
+ * @name Anime Adaptive - Bus Stop [SFW]
+ * @author notal
+ * @version 1.0.0
+ * @description Anime Adaptive variant with the Bus Stop wallpaper and a matching cool dusk accent palette.
+ */
+
+@import url("https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/anime-adaptive.css");
+
+:root {
+  --korone-wallpaper: url("https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/wallpapers/anime-girl-waiting-for-bus-wallpaperwaifu-com.gif");
+  --accent-r: 91;
+  --accent-g: 140;
+  --accent-b: 188;
+  --main-color: #4E7CAF;
+  --hover-color: #6A92BE;
+  --text-link: #7FB4D8;
+  --channel-color: #50657E;
+  --muted-color: #8AA0B7;
+  --deep-surface: #223345;
+  --accent-glow: rgba(91, 140, 188, 0.34);
+  --background-overlay: rgba(91, 140, 188, 0.24);
+  --background-brightness: 0.74;
+  --background-contrast: 1.08;
+  --background-saturation: 1.02;
+  --transparency: 0.80;
+}
+
+.theme-dark {
+  --background-shading: rgba(18, 24, 34, 0.48);
+  --card-shading: rgba(24, 30, 42, 0.26);
+  --popout-shading: rgba(12, 18, 26, 0.70);
+  --modal-shading: rgba(16, 22, 32, 0.52);
+  --input-shading: rgba(91, 140, 188, 0.16);
+}

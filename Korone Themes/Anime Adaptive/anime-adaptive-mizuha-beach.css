@@ -1,0 +1,35 @@
+/**
+ * @name Anime Adaptive - Mizuha Beach [SFW]
+ * @author notal
+ * @version 1.0.0
+ * @description Anime Adaptive variant with the Mizuha Beach wallpaper and a matching aqua-blue accent palette.
+ */
+
+@import url("https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/anime-adaptive.css");
+
+:root {
+  --korone-wallpaper: url("https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/wallpapers/mizuha-mimori-swimsuit-at-the-beach-blue-archive-wallpaperwaifu-com.gif");
+  --accent-r: 84;
+  --accent-g: 173;
+  --accent-b: 208;
+  --main-color: #3597BF;
+  --hover-color: #5CAFD0;
+  --text-link: #76C9E2;
+  --channel-color: #347F97;
+  --muted-color: #7AAEBF;
+  --deep-surface: #1E4B5E;
+  --accent-glow: rgba(84, 173, 208, 0.34);
+  --background-overlay: rgba(84, 173, 208, 0.24);
+  --background-brightness: 0.84;
+  --background-contrast: 1.05;
+  --background-saturation: 1.06;
+  --transparency: 0.78;
+}
+
+.theme-dark {
+  --background-shading: rgba(10, 26, 34, 0.40);
+  --card-shading: rgba(18, 34, 42, 0.20);
+  --popout-shading: rgba(8, 18, 24, 0.62);
+  --modal-shading: rgba(10, 24, 30, 0.44);
+  --input-shading: rgba(84, 173, 208, 0.14);
+}
