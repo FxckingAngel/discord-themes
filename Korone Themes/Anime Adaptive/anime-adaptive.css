@@ -1,8 +1,8 @@
 /**
- * @name Anime Adaptive (Wallpaper Engine Ready) [NSFW Optional]
+ * @name Anime Adaptive [NSFW Optional]
  * @author notal
- * @version 1.5.1
- * @description Base ClearVision anime theme for Anime Adaptive wallpaper variants. Supports repo-hosted GIF presets, licensed 4K JPG/PNG overrides, and the local Vencord Wallpaper Engine helper in this folder.
+ * @version 1.5.2
+ * @description Base ClearVision anime theme for Anime Adaptive wallpaper variants. Supports repo-hosted GIF presets and licensed 4K JPG/PNG overrides.
  */
 
 /*
@@ -12,8 +12,7 @@
  * Switch wallpaper and accents:
  * 1. Install one of the per-wallpaper variant CSS files in this folder, or
  * 2. Override --korone-wallpaper and the accent variables in QuickCSS / Custom CSS, or
- * 3. Use anime-adaptive-licensed-4k-template.css for a licensed 4K JPG/PNG background pack, or
- * 4. Run anime-adaptive-wallpaper-engine.js in Vencord to mount MP4/WebM backgrounds behind the theme.
+ * 3. Use anime-adaptive-licensed-4k-template.css for a licensed 4K JPG/PNG background pack.
  *
  * GIFs included (4s loop, ~854px wide): see /wallpapers — originals converted from your MP4/JPG folder.
  */
@@ -23,7 +22,7 @@
 
 :root {
   /* Pick one file from ./wallpapers/ — or set via Sync-AnimeThemeAccent.ps1 */
-  --korone-wallpaper: url("./wallpapers/azure-blade-moewalls-com.gif");
+  --korone-wallpaper: url("https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/wallpapers/azure-blade-moewalls-com.gif");
   --korone-static-wallpaper: var(--korone-wallpaper);
   --korone-active-wallpaper: var(--korone-static-wallpaper);
   --background-image: var(--korone-active-wallpaper);
