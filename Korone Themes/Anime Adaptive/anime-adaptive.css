@@ -50,7 +50,7 @@
   --accent-glow: rgba(44, 76, 141, 0.38);
   --deep-surface: #1D315C;
   --background-overlay: rgba(44, 76, 141, 0.32);
-  --background-brightness: 0.52;
+  --background-brightness: 0.68;
   /* <ANIME_ACCENT_AUTO_END> */
   --background-shading: 100%;
   --background-position: center;
@@ -62,7 +62,7 @@
   --background-grayscale: 0%;
   --background-invert: 0%;
   --background-blur: 0px;
-  --transparency: 0.9;
+  --transparency: 0.82;
   --text-brightness: 1;
 
   --user-popout-image: var(--background-image);
@@ -113,11 +113,11 @@
 }
 
 .theme-dark {
-  --background-shading: rgba(18, 14, 28, 0.58);
-  --card-shading: rgba(22, 18, 32, 0.34);
-  --popout-shading: rgba(12, 8, 18, 0.78);
-  --modal-shading: rgba(16, 12, 24, 0.56);
-  --input-shading: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.14);
+  --background-shading: rgba(18, 14, 28, 0.42);
+  --card-shading: rgba(22, 18, 32, 0.18);
+  --popout-shading: rgba(12, 8, 18, 0.64);
+  --modal-shading: rgba(16, 12, 24, 0.38);
+  --input-shading: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.18);
   --text-normal: #DDE2F0;
   --text-muted: var(--muted-color);
   --text-link: var(--hover-color);
@@ -130,10 +130,10 @@
 }
 
 .theme-light {
-  --background-shading: rgba(245, 246, 252, 0.72);
-  --card-shading: rgba(235, 238, 248, 0.6);
-  --popout-shading: rgba(250, 251, 255, 0.92);
-  --modal-shading: rgba(240, 242, 252, 0.85);
+  --background-shading: rgba(245, 246, 252, 0.54);
+  --card-shading: rgba(235, 238, 248, 0.34);
+  --popout-shading: rgba(250, 251, 255, 0.78);
+  --modal-shading: rgba(240, 242, 252, 0.58);
   --input-shading: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.1);
   --text-normal: #1E2433;
   --text-muted: #4A5568;
@@ -142,17 +142,17 @@
 }
 
 .theme-darker {
-  --background-shading: rgba(10, 8, 16, 0.68);
-  --card-shading: rgba(14, 12, 20, 0.48);
-  --popout-shading: rgba(8, 6, 12, 0.82);
-  --modal-shading: rgba(12, 10, 18, 0.62);
+  --background-shading: rgba(10, 8, 16, 0.52);
+  --card-shading: rgba(14, 12, 20, 0.28);
+  --popout-shading: rgba(8, 6, 12, 0.68);
+  --modal-shading: rgba(12, 10, 18, 0.44);
 }
 
 .theme-midnight {
-  --background-shading: rgba(6, 4, 10, 0.76);
-  --card-shading: rgba(10, 8, 14, 0.58);
-  --popout-shading: rgba(4, 2, 8, 0.86);
-  --modal-shading: rgba(8, 6, 12, 0.70);
+  --background-shading: rgba(6, 4, 10, 0.60);
+  --card-shading: rgba(10, 8, 14, 0.34);
+  --popout-shading: rgba(4, 2, 8, 0.72);
+  --modal-shading: rgba(8, 6, 12, 0.50);
 }
 
 #cv-settings-button,
