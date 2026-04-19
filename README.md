@@ -48,7 +48,7 @@ Total themes: 1
 
 </details>
 
-### Silverfox0338
+### Silverfox0338 · [Profile](https://github.com/Silverfox0338/discord-themes/blob/main/Silver%20Themes/AUTHOR.md)
 
 <details>
 <summary>3 themes</summary>
