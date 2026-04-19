@@ -14,7 +14,7 @@
   const STORAGE_KEY = "korone-wallpaper-engine";
   const ROOT_ID = "korone-wallpaper-engine-root";
   const CLOCK_ID = "korone-wallpaper-engine-clock";
-  const WIKI_WALLPAPER_BASE = "https://raw.githubusercontent.com/Silverfox0338/discord-themes.wiki/master/Anime-Adaptive/wallpapers";
+  const WIKI_WALLPAPER_BASE = "https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/wallpapers";
 
   const CONFIG = {
     autoStart: true,

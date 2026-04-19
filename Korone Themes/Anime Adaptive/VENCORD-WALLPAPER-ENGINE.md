@@ -1,11 +1,11 @@
 # Anime Adaptive Vencord Wallpaper Engine
 
-This setup keeps the repo theme in CSS, expects shared wallpaper assets to be hosted from the repo wiki, and adds a small optional JavaScript helper for local Vencord video wallpapers plus a Wallpaper Engine-style clock overlay.
+This setup keeps the repo theme in CSS, uses repo-hosted wallpaper assets, and adds a small optional JavaScript helper for local Vencord video wallpapers plus a Wallpaper Engine-style clock overlay.
 
 ## What it does
 
 - Uses `anime-adaptive.css` for the full Discord styling layer
-- Uses wiki-hosted GIF/JPG wallpaper assets from `https://github.com/Silverfox0338/discord-themes.wiki.git`
+- Uses repo-hosted GIF/JPG wallpaper assets from the Anime Adaptive wallpaper folder
 - Injects a fullscreen muted looping `<video>` behind Discord when the selected wallpaper is an MP4 or WebM
 - Falls back to a normal image/GIF wallpaper when the selected playlist entry is not a video
 - Remembers the last selected wallpaper in `localStorage`
@@ -19,11 +19,11 @@ This setup keeps the repo theme in CSS, expects shared wallpaper assets to be ho
 
 ## Setup
 
-1. Host shared GIF/JPG wallpaper assets in the wiki repo at `discord-themes.wiki.git`, for example under `Anime-Adaptive/wallpapers/`.
+1. Keep shared GIF/JPG wallpaper assets in `Korone Themes/Anime Adaptive/wallpapers/` in the main repo.
 2. Install [anime-adaptive.css](./anime-adaptive.css) in Vencord Themes.
 3. Open [anime-adaptive-wallpaper-engine.js](./anime-adaptive-wallpaper-engine.js) and edit `CONFIG.playlist`.
 4. Replace the sample `file:///` paths with your own local MP4/WebM files. Keep large video files local unless you intentionally host them elsewhere.
-5. If your wiki asset path differs, update `CONFIG.wallpaperWikiBaseUrl` so the fallback GIF/JPG links match the wiki layout.
+5. If your wallpaper asset path differs, update `CONFIG.wallpaperWikiBaseUrl` so the fallback GIF/JPG links match the repo layout you use.
 6. Paste the script into Discord devtools console, or load it using your own local Vencord script workflow.
 
 ## Controls
@@ -43,13 +43,13 @@ After the script loads, these helpers are available in the console:
 - `KoroneWallpaperEngine.enableAudioReactiveFromSelector("audio, video")`
 - `KoroneWallpaperEngine.disableAudioReactive()`
 
-## Wiki Hosting
+## Wallpaper Hosting
 
-For upstream-ready CSS variants, point wallpaper URLs at the wiki raw host instead of a personal fork. The helper now assumes a base like:
+For upstream-ready CSS variants, point wallpaper URLs at the main repo raw host instead of a personal fork. The helper now assumes a base like:
 
-`https://raw.githubusercontent.com/Silverfox0338/discord-themes.wiki/master/Anime-Adaptive/wallpapers`
+`https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/wallpapers`
 
-That keeps the main theme repo lighter while still giving the CSS stable public wallpaper URLs.
+That keeps the preset CSS variants aligned with the repo validation rules.
 
 ## Date And Time Overlay
 
