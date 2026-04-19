@@ -1,5 +1,5 @@
 {
-  "generated": "2026-04-19T20:59:23.6943204+00:00",
+  "generated": "2026-04-19T21:31:14.9617649+00:00",
   "authors": {
     "8Bit": {
       "github": "8-bitStudio",
@@ -74,6 +74,13 @@
       "raw": "https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/anime-adaptive-bride-furina.css"
     },
     {
+      "name": "Anime Adaptive - Bus Stop [SFW]",
+      "author": "Korone",
+      "version": "1.0.0",
+      "description": "Anime Adaptive variant with the Bus Stop wallpaper and a matching cool dusk accent palette.",
+      "raw": "https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/anime-adaptive-bus-stop.css"
+    },
+    {
       "name": "Anime Adaptive - Cyberpunk Girl Tears [SFW]",
       "author": "Korone",
       "version": "1.0.0",
@@ -109,6 +116,13 @@
       "raw": "https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/anime-adaptive-lonely-girl.css"
     },
     {
+      "name": "Anime Adaptive - Madoromi Pink Bed [SFW]",
+      "author": "Korone",
+      "version": "1.0.0",
+      "description": "Anime Adaptive variant with the Madoromi Pink Bed wallpaper and a matching blush-pink accent palette.",
+      "raw": "https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/anime-adaptive-madoromi-pink-bed.css"
+    },
+    {
       "name": "Anime Adaptive - Mayoi Shigure Hot Spring [Mild NSFW]",
       "author": "Korone",
       "version": "1.0.0",
@@ -116,11 +130,25 @@
       "raw": "https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/anime-adaptive-mayoi-hot-spring.css"
     },
     {
+      "name": "Anime Adaptive - Mizuha Beach [SFW]",
+      "author": "Korone",
+      "version": "1.0.0",
+      "description": "Anime Adaptive variant with the Mizuha Beach wallpaper and a matching aqua-blue accent palette.",
+      "raw": "https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/anime-adaptive-mizuha-beach.css"
+    },
+    {
       "name": "Anime Adaptive - Pastel Gamer Girl [SFW]",
       "author": "Korone",
       "version": "1.0.0",
       "description": "Anime Adaptive variant with the Pastel Gamer Girl wallpaper and a matching pastel lavender accent palette.",
       "raw": "https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/anime-adaptive-pastel-gamer-girl.css"
+    },
+    {
+      "name": "Anime Adaptive - Samurai Cyber Arm [SFW]",
+      "author": "Korone",
+      "version": "1.0.0",
+      "description": "Anime Adaptive variant with the Samurai Cyber Arm wallpaper and a matching ember-red accent palette.",
+      "raw": "https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/anime-adaptive-samurai-cyber-arm.css"
     },
     {
       "name": "Anime Adaptive - Shiroko Skyfall [SFW]",
