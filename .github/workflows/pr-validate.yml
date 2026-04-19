@@ -287,7 +287,20 @@ jobs:
 
             } else if (!isCollaborator) {
               core.setOutput('safe_to_merge', 'false');
-              // Clean but not a collaborator — leave open for manual review (don't fail)
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
+                issue_number: prNum,
+                body: [
+                  '## All checks passed — pending manual review',
+                  '',
+                  'Your PR looks good! Everything is structured correctly.',
+                  '',
+                  'Since you\'re not yet a registered collaborator, it won\'t auto-merge. The repo owner has been notified and will review your PR manually.',
+                  '',
+                  '> If this is your first submission, feel free to introduce yourself in an [issue](https://github.com/Silverfox0338/discord-themes/issues/new/choose) — collaborators get auto-merge on future PRs.',
+                ].join('\n'),
+              });
 
             } else {
               core.setOutput('safe_to_merge', 'true');
