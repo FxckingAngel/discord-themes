@@ -252,6 +252,46 @@ jobs:
               }
             }
 
+            // AUTHOR.md H1 header validation
+            const authorMdFiles = files.filter(f => {
+              const parts = f.filename.split('/');
+              return (f.status === 'added' || f.status === 'modified') &&
+                     parts.length === 2 && parts[1] === 'AUTHOR.md';
+            });
+
+            for (const mdFile of authorMdFiles) {
+              let content;
+              try {
+                const { data: fileData } = await github.rest.repos.getContent({
+                  owner: context.repo.owner,
+                  repo:  context.repo.repo,
+                  path:  mdFile.filename,
+                  ref:   context.payload.pull_request.head.sha,
+                });
+                content = Buffer.from(fileData.content, 'base64').toString('utf8');
+              } catch (_) { continue; }
+
+              const h1Match = content.match(/^#\s+(.+)$/m);
+              if (!h1Match) {
+                issues.push({
+                  title: `\`${mdFile.filename}\` — missing H1 heading`,
+                  what:  `Your \`AUTHOR.md\` does not have an H1 heading.`,
+                  why:   'The first line of your AUTHOR.md must be `# Your Name` — this is pulled as your display name in theme-authors.json and the README.',
+                  fix:   'Add `# Your Name` as the first heading in your AUTHOR.md.',
+                });
+              } else {
+                const h1Text = h1Match[1].trim();
+                if (h1Text.length > 24) {
+                  issues.push({
+                    title: `\`${mdFile.filename}\` — H1 heading too long (${h1Text.length}/24 characters)`,
+                    what:  `Your AUTHOR.md H1 heading is \`# ${h1Text}\` which is ${h1Text.length} characters.`,
+                    why:   'The H1 heading is used as your display name and must be 24 characters or fewer.',
+                    fix:   `Shorten \`# ${h1Text}\` to 24 characters or fewer.`,
+                  });
+                }
+              }
+            }
+
             // GitHub collaborators AND registered contributors both get auto-merge
             let isGitHubCollaborator = false;
             try {
@@ -358,8 +398,22 @@ jobs:
             const raw  = fs.readFileSync('theme-authors.json', 'utf8').replace(/^\uFEFF/, '');
             const data = JSON.parse(raw);
             for (const { folder, github: ghLogin } of newFolders) {
-              const { data: user } = await github.rest.users.getByUsername({ username: ghLogin });
-              const displayName = user.name || ghLogin;
+              let displayName = null;
+              try {
+                const { data: authorMdFile } = await github.rest.repos.getContent({
+                  owner: context.repo.owner,
+                  repo:  context.repo.repo,
+                  path:  `${folder}/AUTHOR.md`,
+                  ref:   'main',
+                });
+                const authorMdContent = Buffer.from(authorMdFile.content, 'base64').toString('utf8');
+                const h1Match = authorMdContent.match(/^#\s+(.+)$/m);
+                if (h1Match) displayName = h1Match[1].trim();
+              } catch (_) {}
+              if (!displayName) {
+                const { data: user } = await github.rest.users.getByUsername({ username: ghLogin });
+                displayName = user.name || ghLogin;
+              }
               data.folders[folder] = { author: displayName, github: ghLogin };
             }
             fs.writeFileSync('theme-authors.json', '\uFEFF' + JSON.stringify(data, null, 2) + '\n', 'utf8');

@@ -57,10 +57,17 @@ jobs:
 
             if (newFolders.length === 0) return;
 
-            const { data: user } = await github.rest.users.getByUsername({ username: prAuthor });
-            const displayName = user.name || prAuthor;
-
             for (const folder of newFolders) {
+              let displayName = null;
+              try {
+                const authorMdContent = fs.readFileSync(`${folder}/AUTHOR.md`, 'utf8');
+                const h1Match = authorMdContent.match(/^#\s+(.+)$/m);
+                if (h1Match) displayName = h1Match[1].trim();
+              } catch (_) {}
+              if (!displayName) {
+                const { data: user } = await github.rest.users.getByUsername({ username: prAuthor });
+                displayName = user.name || prAuthor;
+              }
               data.folders[folder] = { author: displayName, github: prAuthor };
             }
 

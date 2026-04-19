@@ -921,6 +921,16 @@ if ($Doctor) {
       $mdContent = Get-Content -LiteralPath $authorMdPath -Raw
       if ([string]::IsNullOrWhiteSpace($mdContent)) {
         $doctorWarnings.Add("$folderName/AUTHOR.md exists but is empty")
+      } else {
+        $h1Match = [regex]::Match($mdContent, '(?m)^#\s+(.+)$')
+        if (-not $h1Match.Success) {
+          $doctorWarnings.Add("$folderName/AUTHOR.md is missing an H1 heading (e.g. '# Your Name') — this is used as your display name in the README")
+        } else {
+          $h1Text = $h1Match.Groups[1].Value.Trim()
+          if ($h1Text.Length -gt 24) {
+            $doctorWarnings.Add("$folderName/AUTHOR.md H1 heading '$h1Text' is $($h1Text.Length) characters — must be 24 or fewer")
+          }
+        }
       }
     }
 
