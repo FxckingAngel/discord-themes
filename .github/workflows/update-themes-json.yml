@@ -1,0 +1,45 @@
+name: Update themes.json for GitHub Pages
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '**/*.css'
+      - 'theme-authors.json'
+      - 'scripts/generate-themes-json.ps1'
+
+jobs:
+  generate:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.README_PUSH_TOKEN }}
+
+      - name: Generate docs/themes.json
+        run: pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/generate-themes-json.ps1
+
+      - name: Commit updated themes.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin main
+          git diff --quiet docs/themes.json && echo "No changes." || (git add docs/themes.json && git commit -m "chore: auto-update themes.json [skip ci]" && git push)
+        shell: bash
+
+      - name: Open issue on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.README_PUSH_TOKEN }}
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              title: 'themes.json generation failed',
+              body:  `The \`update-themes-json\` workflow failed after a push to main.\n\nCommit: \`${context.sha}\`\n\n[View run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})\n\nThe GitHub Pages site may be showing stale theme data.`,
+              labels: ['bug'],
+            });
