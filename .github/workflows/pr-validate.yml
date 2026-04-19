@@ -12,10 +12,9 @@ jobs:
       pull-requests: write
       contents: read
     outputs:
-      safe_to_merge:  ${{ steps.check.outputs.safe_to_merge }}
-      new_folders:    ${{ steps.check.outputs.new_folders }}
+      safe_to_merge:   ${{ steps.check.outputs.safe_to_merge }}
       is_collaborator: ${{ steps.check.outputs.is_collaborator }}
-      issues_json:    ${{ steps.check.outputs.issues_json }}
+      issues_json:     ${{ steps.check.outputs.issues_json }}
     steps:
       - name: Check PR changes
         id: check
@@ -25,8 +24,9 @@ jobs:
             const PROTECTED_FILES = ['README.md', 'theme-authors.json', 'themecmd.cmd', 'THEMECMD.md'];
             const PROTECTED_DIRS  = ['.github/', 'scripts/'];
 
-            const prAuthor = context.payload.pull_request.user.login;
-            const prNum    = context.issue.number;
+            const prAuthor   = context.payload.pull_request.user.login;
+            const prAuthorId = context.payload.pull_request.user.id;
+            const prNum      = context.issue.number;
 
             const { data: authorsFile } = await github.rest.repos.getContent({
               owner: context.repo.owner,
@@ -146,10 +146,12 @@ jobs:
               }
 
               if (folderOwners[topFolder]) {
-                const entry        = folderOwners[topFolder];
-                const folderGithub = (entry.github || entry.author || '').toLowerCase();
-                const displayName  = entry.author || entry.github || topFolder;
-                if (folderGithub !== prAuthor.toLowerCase()) {
+                const entry       = folderOwners[topFolder];
+                const displayName = entry.author || entry.github || topFolder;
+                const isOwner     = entry.githubId
+                  ? entry.githubId === prAuthorId
+                  : (entry.github || entry.author || '').toLowerCase() === prAuthor.toLowerCase();
+                if (!isOwner) {
                   if (!reportedOwnershipIssues.has(topFolder)) {
                     reportedOwnershipIssues.add(topFolder);
                     issues.push({
@@ -373,11 +375,15 @@ jobs:
               isGitHubCollaborator = true;
             } catch (_) {}
 
-            const isRegistered = Object.values(folderOwners).some(
-              entry => (entry.github || '').toLowerCase() === prAuthor.toLowerCase()
+            // ID takes precedence over login for identity resolution
+            const registeredEntry = Object.values(folderOwners).find(entry =>
+              entry.githubId
+                ? entry.githubId === prAuthorId
+                : (entry.github || '').toLowerCase() === prAuthor.toLowerCase()
             );
-
-            const isCollaborator = isGitHubCollaborator || isRegistered;
+            const isRegistered   = !!registeredEntry;
+            const isTrusted      = registeredEntry?.trusted === true;
+            const isCollaborator = isGitHubCollaborator || isTrusted;
 
             core.setOutput('is_collaborator', String(isCollaborator));
             core.setOutput('issues_json', JSON.stringify(issues.map(i => i.title)));
@@ -408,26 +414,30 @@ jobs:
 
             } else if (!isCollaborator) {
               core.setOutput('safe_to_merge', 'false');
+              const pendingBody = (isRegistered && !isTrusted)
+                ? [
+                    '## All checks passed — pending trust approval',
+                    '',
+                    'Your PR looks good and you\'re a registered contributor.',
+                    '',
+                    'The repo owner will review and mark you as trusted — after that, future PRs will auto-merge.',
+                  ].join('\n')
+                : [
+                    '## All checks passed — pending review',
+                    '',
+                    'Your PR looks good! Everything is structured correctly.',
+                    '',
+                    'The repo owner will review it shortly. Once you\'re registered and trusted, future PRs will auto-merge.',
+                  ].join('\n');
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo:  context.repo.repo,
                 issue_number: prNum,
-                body: [
-                  '## All checks passed — pending review',
-                  '',
-                  'Your PR looks good! Everything is structured correctly.',
-                  '',
-                  'The repo owner will review it shortly. Once you\'re registered, future PRs will auto-merge.',
-                ].join('\n'),
+                body:  pendingBody,
               });
 
             } else {
               core.setOutput('safe_to_merge', 'true');
-              if (newFolderSet.size > 0) {
-                core.setOutput('new_folders', JSON.stringify(
-                  [...newFolderSet].map(f => ({ folder: f, github: prAuthor }))
-                ));
-              }
             }
 
   auto-merge:
@@ -443,59 +453,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh pr merge "${{ github.event.pull_request.number }}" --squash --repo "${{ github.repository }}"
 
-  update-authors:
-    needs: [validate, auto-merge]
-    if: needs.validate.outputs.new_folders != ''
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-          token: ${{ secrets.README_PUSH_TOKEN }}
-
-      - name: Add new contributors to theme-authors.json
-        uses: actions/github-script@v7
-        env:
-          NEW_FOLDERS: ${{ needs.validate.outputs.new_folders }}
-        with:
-          script: |
-            const fs = require('fs');
-            const newFolders = JSON.parse(process.env.NEW_FOLDERS);
-            const raw  = fs.readFileSync('theme-authors.json', 'utf8').replace(/^\uFEFF/, '');
-            const data = JSON.parse(raw);
-            for (const { folder, github: ghLogin } of newFolders) {
-              let displayName = null;
-              try {
-                const { data: authorMdFile } = await github.rest.repos.getContent({
-                  owner: context.repo.owner,
-                  repo:  context.repo.repo,
-                  path:  `${folder}/AUTHOR.md`,
-                  ref:   'main',
-                });
-                const authorMdContent = Buffer.from(authorMdFile.content, 'base64').toString('utf8');
-                const h1Match = authorMdContent.match(/^#\s+(.+)$/m);
-                if (h1Match) displayName = h1Match[1].trim();
-              } catch (_) {}
-              if (!displayName) {
-                const { data: user } = await github.rest.users.getByUsername({ username: ghLogin });
-                displayName = user.name || ghLogin;
-              }
-              data.folders[folder] = { author: displayName, github: ghLogin };
-            }
-            fs.writeFileSync('theme-authors.json', '\uFEFF' + JSON.stringify(data, null, 2) + '\n', 'utf8');
-
-      - name: Commit updated theme-authors.json
-        shell: bash
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git diff --quiet theme-authors.json && echo "No changes." || \
-            (git add theme-authors.json && git commit -m "chore: register new contributor(s) [skip ci]" && git push)
-
   generate-readme:
-    needs: [auto-merge, update-authors]
+    needs: [auto-merge]
     if: always() && needs.auto-merge.result == 'success'
     runs-on: windows-latest
     permissions:
