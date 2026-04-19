@@ -2,6 +2,7 @@ param(
   [string]$OutputPath = "README.md",
   [string]$MetadataPath = "theme-authors.json",
   [string]$PredictPngRawUrl = "",
+  [string]$Folder = "",
   [switch]$NoAuthorPrompt,
   [switch]$Doctor
 )
@@ -812,6 +813,19 @@ if ($Doctor) {
   $requiredHeaders = @("name", "author", "version", "description")
   $searchRoots = Get-ThemeSearchRoots -RepoRoot $repoRoot -AuthorMetadata $authorMetadata
 
+  # Scope to a specific contributor folder if -Folder was provided
+  if (-not [string]::IsNullOrWhiteSpace($Folder)) {
+    $scopedFolderPath = [System.IO.Path]::GetFullPath((Join-Path $repoRoot $Folder))
+    $cssFiles = @($cssFiles | Where-Object {
+      $_.FullName.StartsWith($scopedFolderPath + [System.IO.Path]::DirectorySeparatorChar, [System.StringComparison]::OrdinalIgnoreCase) -or
+      $_.FullName -eq $scopedFolderPath
+    })
+    $searchRoots = @($searchRoots | Where-Object {
+      $_.StartsWith($scopedFolderPath, [System.StringComparison]::OrdinalIgnoreCase)
+    })
+    Write-Output "Scoped to folder: $Folder"
+  }
+
   if (-not $authorMetadata.IsLoaded) {
     $doctorFailures.Add("Author metadata file is missing or invalid: $($authorMetadata.Path)")
   }
@@ -821,7 +835,7 @@ if ($Doctor) {
   }
 
   if ($cssFiles.Count -eq 0) {
-    $doctorFailures.Add("No CSS files found under theme roots.")
+    $doctorFailures.Add("No CSS files found under theme roots$(if (-not [string]::IsNullOrWhiteSpace($Folder)) { " for folder '$Folder'" }).")
   }
 
   foreach ($file in $cssFiles) {
@@ -868,6 +882,34 @@ if ($Doctor) {
 
   foreach ($folder in $staleFolders) {
     $doctorWarnings.Add("theme-authors.json has stale folder mapping: $folder")
+  }
+
+  # AUTHOR.md check — optional file, but validate it if present
+  $foldersToCheckMd = if (-not [string]::IsNullOrWhiteSpace($Folder)) {
+    @($Folder)
+  } else {
+    @($foldersInCss | Sort-Object -Unique)
+  }
+
+  foreach ($folderName in $foldersToCheckMd) {
+    $folderPath = Join-Path $repoRoot $folderName
+    if (-not (Test-Path -LiteralPath $folderPath -PathType Container)) { continue }
+
+    $authorMdPath = Join-Path $folderPath "AUTHOR.md"
+    if (Test-Path -LiteralPath $authorMdPath) {
+      $mdContent = Get-Content -LiteralPath $authorMdPath -Raw
+      if ([string]::IsNullOrWhiteSpace($mdContent)) {
+        $doctorWarnings.Add("$folderName/AUTHOR.md exists but is empty")
+      }
+    }
+
+    # Warn if any .md exists in the folder root with the wrong name
+    $mdFiles = @(Get-ChildItem -LiteralPath $folderPath -File -Filter "*.md" -ErrorAction SilentlyContinue)
+    foreach ($md in $mdFiles) {
+      if ($md.Name -ne "AUTHOR.md") {
+        $doctorWarnings.Add("$folderName/$($md.Name) — markdown files must be named AUTHOR.md")
+      }
+    }
   }
 
   Write-Output "Doctor report"

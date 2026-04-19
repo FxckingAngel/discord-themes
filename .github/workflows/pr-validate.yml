@@ -91,6 +91,52 @@ jobs:
                     why:   'Contributors can only add, edit, or delete files within their own theme folder.',
                     fix:   `Remove any changes to files inside \`${topFolder}/\`. If you want to suggest a change to **${displayName}**'s theme, open an issue tagging them instead.`,
                   });
+                  continue;
+                }
+
+                // Owned folder — validate file structure
+                const ALLOWED_EXTS = ['.css', '.md', '.png', '.gif', '.jpg', '.jpeg', '.webp', '.svg'];
+                const parts    = file.filename.split('/');
+                const depth    = parts.length; // 2 = root of user folder, 3+ = inside theme subfolder
+                const fname    = parts[parts.length - 1];
+                const dotIdx   = fname.lastIndexOf('.');
+                const ext      = dotIdx >= 0 ? fname.slice(dotIdx).toLowerCase() : '';
+
+                if (ext && !ALLOWED_EXTS.includes(ext)) {
+                  issues.push({
+                    title: `\`${fname}\` — file type not allowed`,
+                    what:  `You added \`${fname}\` (\`${ext}\`) to \`${topFolder}/\`.`,
+                    why:   `Only these file types are permitted in contributor folders: ${ALLOWED_EXTS.join(', ')}.`,
+                    fix:   `Remove \`${file.filename}\` from your PR. Contact the repo owner if you need a different file type.`,
+                  });
+                } else if (ext === '.css' && depth === 2) {
+                  issues.push({
+                    title: `\`${fname}\` — CSS must be inside a theme subfolder`,
+                    what:  `You placed \`${fname}\` directly inside \`${topFolder}/\` instead of a theme subfolder.`,
+                    why:   'CSS files must live inside their own named theme folder, not at the root of your contributor folder.',
+                    fix:   `Move it to \`${topFolder}/Theme Name/${fname}\`.`,
+                  });
+                } else if (ext === '.md' && depth > 2) {
+                  issues.push({
+                    title: `\`${fname}\` — markdown must be at contributor folder root`,
+                    what:  `You placed a \`.md\` file inside a theme subfolder (\`${file.filename}\`).`,
+                    why:   'Markdown files are only allowed directly in your contributor folder root, not inside theme subfolders.',
+                    fix:   `Move it to \`${topFolder}/AUTHOR.md\`.`,
+                  });
+                } else if (ext === '.md' && depth === 2 && fname !== 'AUTHOR.md') {
+                  issues.push({
+                    title: `\`${fname}\` — markdown file must be named AUTHOR.md`,
+                    what:  `You added a markdown file named \`${fname}\` to your contributor folder.`,
+                    why:   'Only one markdown file is allowed per contributor folder, and it must be named exactly \`AUTHOR.md\`.',
+                    fix:   `Rename it to \`${topFolder}/AUTHOR.md\`.`,
+                  });
+                } else if (ext !== '.css' && ext !== '.md' && depth === 2) {
+                  issues.push({
+                    title: `\`${fname}\` — images must be inside a theme subfolder`,
+                    what:  `You placed \`${fname}\` directly in your contributor folder root.`,
+                    why:   'Image files must live inside a theme subfolder, not at the contributor folder root.',
+                    fix:   `Move it to \`${topFolder}/Theme Name/${fname}\`.`,
+                  });
                 }
               } else {
                 if (file.status !== 'added') {
