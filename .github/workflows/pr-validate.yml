@@ -23,11 +23,12 @@ jobs:
         with:
           script: |
             const PROTECTED_FILES = ['README.md', 'theme-authors.json', 'themecmd.cmd', 'THEMECMD.md'];
-            const PROTECTED_DIRS  = ['.github/', 'scripts/'];
+            const PROTECTED_DIRS  = ['.github/', 'scripts/', 'docs/'];
 
             const prAuthor   = context.payload.pull_request.user.login;
             const prAuthorId = context.payload.pull_request.user.id;
             const prNum      = context.issue.number;
+            const isOwner    = context.repo.owner.toLowerCase() === prAuthor.toLowerCase();
 
             const { data: authorsFile } = await github.rest.repos.getContent({
               owner: context.repo.owner,
@@ -398,21 +399,39 @@ jobs:
                 `**How to fix it:** ${issue.fix}`,
               ].join('\n'));
 
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: prNum,
-                body: [
-                  `## Auto-merge blocked (${issues.length} issue${issues.length > 1 ? 's' : ''})`,
-                  '',
-                  'Fix the issue(s) below, then push to your branch — the check will re-run automatically.',
-                  '',
-                  '---',
-                  '',
-                  sections.join('\n\n---\n\n'),
-                ].join('\n'),
-              });
-              core.setFailed(`PR blocked: ${issues.length} issue(s) found.`);
+              if (isOwner) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo:  context.repo.repo,
+                  issue_number: prNum,
+                  body: [
+                    `## Validation warnings (${issues.length} issue${issues.length > 1 ? 's' : ''}) — owner override`,
+                    '',
+                    'You are the repo owner so this PR will still auto-merge, but the following was flagged:',
+                    '',
+                    '---',
+                    '',
+                    sections.join('\n\n---\n\n'),
+                  ].join('\n'),
+                });
+                core.setOutput('safe_to_merge', 'true');
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNum,
+                  body: [
+                    `## Auto-merge blocked (${issues.length} issue${issues.length > 1 ? 's' : ''})`,
+                    '',
+                    'Fix the issue(s) below, then push to your branch — the check will re-run automatically.',
+                    '',
+                    '---',
+                    '',
+                    sections.join('\n\n---\n\n'),
+                  ].join('\n'),
+                });
+                core.setFailed(`PR blocked: ${issues.length} issue(s) found.`);
+              }
 
             } else if (!isCollaborator) {
               core.setOutput('safe_to_merge', 'false');
