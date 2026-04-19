@@ -21,7 +21,7 @@
 
 :root {
   /* Pick one file from ./wallpapers/ — or set via Sync-AnimeThemeAccent.ps1 */
-  --background-image: url("./wallpapers/azure-blade-moewalls-com.gif");
+  --background-image: url("https://github.com/Silverfox0338/discord-themes/blob/main/Korone%20Theme/Anime%20Adaptive/wallpapers/azure-blade-moewalls-com.gif");
   /* <ANIME_ACCENT_AUTO_START> */
   --accent-r: 44;
   --accent-g: 76;
