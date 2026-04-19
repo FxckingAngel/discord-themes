@@ -61,7 +61,7 @@
   --accent-glow: rgba(44, 76, 141, 0.38);
   --deep-surface: #1D315C;
   --background-overlay: rgba(44, 76, 141, 0.32);
-  --background-brightness: 0.68;
+  --background-brightness: 0.82;
   /* <ANIME_ACCENT_AUTO_END> */
   --background-shading: 100%;
   --background-position: center;
@@ -73,7 +73,7 @@
   --background-grayscale: 0%;
   --background-invert: 0%;
   --background-blur: 0px;
-  --transparency: 0.82;
+  --transparency: 0.72;
   --text-brightness: 1;
 
   --user-popout-image: var(--korone-static-wallpaper);
@@ -209,11 +209,11 @@ body.korone-video-wallpaper-active [class*="appMount"] {
 }
 
 .theme-dark {
-  --background-shading: rgba(18, 14, 28, 0.42);
-  --card-shading: rgba(22, 18, 32, 0.18);
-  --popout-shading: rgba(12, 8, 18, 0.64);
-  --modal-shading: rgba(16, 12, 24, 0.38);
-  --input-shading: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.18);
+  --background-shading: rgba(18, 14, 28, 0.24);
+  --card-shading: rgba(22, 18, 32, 0.10);
+  --popout-shading: rgba(12, 8, 18, 0.42);
+  --modal-shading: rgba(16, 12, 24, 0.22);
+  --input-shading: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.12);
   --text-normal: #DDE2F0;
   --text-muted: var(--muted-color);
   --text-link: var(--hover-color);
@@ -238,17 +238,17 @@ body.korone-video-wallpaper-active [class*="appMount"] {
 }
 
 .theme-darker {
-  --background-shading: rgba(10, 8, 16, 0.52);
-  --card-shading: rgba(14, 12, 20, 0.28);
-  --popout-shading: rgba(8, 6, 12, 0.68);
-  --modal-shading: rgba(12, 10, 18, 0.44);
+  --background-shading: rgba(10, 8, 16, 0.32);
+  --card-shading: rgba(14, 12, 20, 0.16);
+  --popout-shading: rgba(8, 6, 12, 0.46);
+  --modal-shading: rgba(12, 10, 18, 0.28);
 }
 
 .theme-midnight {
-  --background-shading: rgba(6, 4, 10, 0.60);
-  --card-shading: rgba(10, 8, 14, 0.34);
-  --popout-shading: rgba(4, 2, 8, 0.72);
-  --modal-shading: rgba(8, 6, 12, 0.50);
+  --background-shading: rgba(6, 4, 10, 0.38);
+  --card-shading: rgba(10, 8, 14, 0.20);
+  --popout-shading: rgba(4, 2, 8, 0.50);
+  --modal-shading: rgba(8, 6, 12, 0.32);
 }
 
 #cv-settings-button,
@@ -430,7 +430,7 @@ code {
 
 [class*="embedFull-"],
 [class*="embed-"] {
-  background-color: rgba(20, 16, 28, 0.55) !important;
+  background-color: rgba(20, 16, 28, 0.34) !important;
   border-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.35) !important;
   border-left-width: 3px !important;
   border-radius: 4px;
@@ -465,7 +465,7 @@ code {
 }
 
 [class*="panels-"] {
-  background: linear-gradient(180deg, rgba(22, 18, 30, 0.65), rgba(12, 10, 18, 0.85));
+  background: linear-gradient(180deg, rgba(22, 18, 30, 0.42), rgba(12, 10, 18, 0.58));
   border-top: 1px solid rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.12);
 }
 
@@ -478,15 +478,15 @@ code {
 [class*="channelTextArea-"],
 [class*="scrollableContainer-"],
 [class*="themedBackground-"] {
-  background-color: rgba(18, 16, 26, 0.30) !important;
-  border-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.16) !important;
+  background-color: rgba(18, 16, 26, 0.18) !important;
+  border-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.12) !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
 }
 
 [class*="channelTextArea-"]:focus-within,
 [class*="scrollableContainer-"]:focus-within {
-  background-color: rgba(20, 18, 30, 0.36) !important;
-  border-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.28) !important;
+  background-color: rgba(20, 18, 30, 0.24) !important;
+  border-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.20) !important;
 }
 
 [class*="tooltip-"] {
