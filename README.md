@@ -1,5 +1,29 @@
 ﻿# discord-themes
 
+A community collection of custom Discord themes for BetterDiscord and Vencord — handcrafted by people who actually care about how their Discord looks.
+
+Currently home to **8 themes** from **4 contributors**, and always open to more.
+
+---
+
+## How it works
+
+Every theme lives in its own contributor folder. Each contributor owns their folder — they can add, update, or remove their themes freely. Themes are installed via a raw GitHub URL, so you always get the latest version automatically without re-downloading anything.
+
+Contributors can also include an **AUTHOR.md** in their folder — a short profile page with links to their work, socials, and anything else relevant to their themes. Look for the **Profile** link next to a contributor's name in the Authors section below.
+
+---
+
+## Want to add your theme?
+
+This repo is open to everyone. If you've made a Discord theme and want it listed here, just fork the repo, add your theme, and open a pull request — the bot will validate it automatically and walk you through anything that needs fixing.
+
+First-time submissions get a quick manual review. After that, your PRs auto-merge.
+
+→ **[Developer & Contributor Guide](https://github.com/Silverfox0338/discord-themes/wiki/Developer-&-Contributor-Guide)** — everything you need to know to submit a theme.
+
+---
+
 ## Themes
 
 <details>
