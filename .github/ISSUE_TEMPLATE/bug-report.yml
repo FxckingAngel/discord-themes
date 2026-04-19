@@ -26,6 +26,7 @@ body:
       description: Who made the theme?
       options:
         - 8Bit
+        - Korone
         - Silverfox0338
         - Stone
     validations:
