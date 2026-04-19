@@ -1,0 +1,35 @@
+/**
+ * @name Anime Adaptive - Samurai Cyber Arm [SFW]
+ * @author notal
+ * @version 1.0.0
+ * @description Anime Adaptive variant with the Samurai Cyber Arm wallpaper and a matching ember-red accent palette.
+ */
+
+@import url("https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/anime-adaptive.css");
+
+:root {
+  --korone-wallpaper: url("https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/wallpapers/samurai-anime-girl-with-sword-and-cyber-arm-wallpaperwaifu-com.gif");
+  --accent-r: 190;
+  --accent-g: 78;
+  --accent-b: 64;
+  --main-color: #A64034;
+  --hover-color: #BF6455;
+  --text-link: #D78576;
+  --channel-color: #77413B;
+  --muted-color: #A27D77;
+  --deep-surface: #341C1B;
+  --accent-glow: rgba(190, 78, 64, 0.34);
+  --background-overlay: rgba(190, 78, 64, 0.24);
+  --background-brightness: 0.70;
+  --background-contrast: 1.10;
+  --background-saturation: 1.08;
+  --transparency: 0.81;
+}
+
+.theme-dark {
+  --background-shading: rgba(22, 12, 12, 0.48);
+  --card-shading: rgba(30, 18, 18, 0.24);
+  --popout-shading: rgba(16, 8, 8, 0.68);
+  --modal-shading: rgba(20, 10, 10, 0.48);
+  --input-shading: rgba(190, 78, 64, 0.16);
+}
