@@ -49,6 +49,22 @@ jobs:
             const newFolderSet = new Set();
             const reportedOwnershipIssues = new Set();
             const reportedFolderIssues    = new Set();
+            const reportedNamingIssues    = new Set();
+
+            function checkFolderNaming(topFolder) {
+              if (reportedNamingIssues.has(topFolder)) return;
+              if (topFolder.endsWith(' Themes')) return;
+              reportedNamingIssues.add(topFolder);
+              const suggestedName = topFolder.endsWith(' Theme')
+                ? topFolder + 's'
+                : topFolder + ' Themes';
+              issues.push({
+                title: `\`${topFolder}/\` — folder name must end with " Themes"`,
+                what:  `Your contributor folder is named \`${topFolder}\`.`,
+                why:   'All contributor folders must follow the naming convention, e.g. "Korone Themes", "Silver Themes".',
+                fix:   `Rename your folder to \`${suggestedName}\`.`,
+              });
+            }
 
             const ALLOWED_EXTS = ['.css', '.md', '.png', '.gif', '.jpg', '.jpeg', '.webp', '.svg'];
 
@@ -144,6 +160,7 @@ jobs:
                   }
                   continue;
                 }
+                checkFolderNaming(topFolder);
                 validateStructure(file.filename, topFolder);
               } else {
                 // Check if this is a rename FROM the contributor's own registered folder
@@ -157,19 +174,8 @@ jobs:
                 if (isOwnedRename || file.status === 'added') {
                   if (!newFolderSet.has(topFolder)) {
                     newFolderSet.add(topFolder);
-                    // Enforce folder naming convention once per new folder
-                    if (!topFolder.endsWith(' Themes')) {
-                      const suggestedName = topFolder.endsWith(' Theme')
-                        ? topFolder + 's'
-                        : topFolder + ' Themes';
-                      issues.push({
-                        title: `\`${topFolder}/\` — folder name must end with " Themes"`,
-                        what:  `Your contributor folder is named \`${topFolder}\`.`,
-                        why:   'All contributor folders must follow the naming convention, e.g. "Korone Themes", "Silver Themes".',
-                        fix:   `Rename your folder to \`${suggestedName}\`.`,
-                      });
-                    }
                   }
+                  checkFolderNaming(topFolder);
                   validateStructure(file.filename, topFolder);
                 } else if (!reportedFolderIssues.has(topFolder)) {
                   reportedFolderIssues.add(topFolder);
