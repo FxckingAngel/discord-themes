@@ -13,4 +13,6 @@ Discord theme creator focused on anime-inspired setups, animated wallpapers, and
 
 ## Notes
 
-- Anime Adaptive also has an optional local Vencord wallpaper helper, but it is kept outside this repo because `discord-themes` only accepts theme assets and supported theme file types.
+- Anime Adaptive also has an optional local Vencord wallpaper helper, kept outside this repo because `discord-themes` only accepts theme assets and supported theme file types.
+- Helper setup guide: https://github.com/FxckingAngel/discord-themes/blob/anime-adaptive-helper/Korone%20Themes/Anime%20Adaptive/VENCORD-WALLPAPER-ENGINE.md
+- Helper source: https://github.com/FxckingAngel/discord-themes/blob/anime-adaptive-helper/Korone%20Themes/Anime%20Adaptive/anime-adaptive-wallpaper-engine.js
