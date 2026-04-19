@@ -18,7 +18,7 @@ Contributors can also include an **AUTHOR.md** in their folder — a short profi
 
 This repo is open to everyone. If you've made a Discord theme and want it listed here, just fork the repo, add your theme, and open a pull request — the bot will validate it automatically and walk you through anything that needs fixing.
 
-First-time submissions get a quick manual review. After that, your PRs auto-merge.
+Open a PR and the repo owner will review it. Once you're registered, future PRs auto-merge.
 
 → **[Developer & Contributor Guide](https://github.com/Silverfox0338/discord-themes/wiki/Developer-&-Contributor-Guide)** — everything you need to know to submit a theme.
 
