@@ -81,12 +81,14 @@ jobs:
             rejected_collaborator)
               COLOR=15127042
               TITLE="Collaborator PR Blocked — #${PR_NUM}"
-              DESC="**@${PR_AUTHOR}** (collaborator) submitted [PR #${PR_NUM}: \"${PR_TITLE}\"](${PR_URL}) but it was rejected.\n\n**Violations:**\n${ISSUE_LIST}"
+              DESC=$(printf '**@%s** (collaborator) submitted [PR #%s: "%s"](%s) but it was rejected.\n\n**Violations:**\n%s' \
+                "$PR_AUTHOR" "$PR_NUM" "$PR_TITLE" "$PR_URL" "$ISSUE_LIST")
               ;;
             rejected_unknown)
               COLOR=15158332
               TITLE="Unknown User PR Rejected — #${PR_NUM}"
-              DESC="**@${PR_AUTHOR}** (not a collaborator) submitted [PR #${PR_NUM}: \"${PR_TITLE}\"](${PR_URL}) and was rejected.\n\n**Violations:**\n${ISSUE_LIST}"
+              DESC=$(printf '**@%s** (not a collaborator) submitted [PR #%s: "%s"](%s) and was rejected.\n\n**Violations:**\n%s' \
+                "$PR_AUTHOR" "$PR_NUM" "$PR_TITLE" "$PR_URL" "$ISSUE_LIST")
               ;;
             needs_review)
               COLOR=16766720
