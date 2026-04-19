@@ -27,8 +27,9 @@
 }
 
 .theme-dark {
-  --background-shading: rgba(18, 20, 28, 0.63);
-  --card-shading: rgba(22, 25, 34, 0.43);
-  --popout-shading: rgba(12, 15, 22, 0.81);
-  --modal-shading: rgba(16, 18, 26, 0.67);
+  --background-shading: rgba(20, 22, 30, 0.55);
+  --card-shading: rgba(26, 29, 38, 0.34);
+  --popout-shading: rgba(14, 16, 24, 0.75);
+  --modal-shading: rgba(18, 20, 28, 0.59);
+  --input-shading: rgba(117, 122, 134, 0.15);
 }
