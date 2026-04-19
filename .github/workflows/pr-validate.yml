@@ -152,6 +152,56 @@ jobs:
               }
             }
 
+            // CSS URL validation — all image urls must be hosted in this repo
+            const REPO_RAW_PREFIX = 'https://raw.githubusercontent.com/Silverfox0338/discord-themes/';
+            const SKIP_URL_HOSTS  = ['fonts.googleapis.com', 'fonts.gstatic.com'];
+
+            const cssToCheck = files.filter(f => {
+              const parts  = f.filename.split('/');
+              const dotIdx = f.filename.lastIndexOf('.');
+              const ext    = dotIdx >= 0 ? f.filename.slice(dotIdx).toLowerCase() : '';
+              return (f.status === 'added' || f.status === 'modified') && ext === '.css' && parts.length >= 3;
+            });
+
+            for (const cssFile of cssToCheck) {
+              let content;
+              try {
+                const { data: fileData } = await github.rest.repos.getContent({
+                  owner: context.repo.owner,
+                  repo:  context.repo.repo,
+                  path:  cssFile.filename,
+                  ref:   context.payload.pull_request.head.sha,
+                });
+                content = Buffer.from(fileData.content, 'base64').toString('utf8');
+              } catch (_) { continue; }
+
+              const badUrls = [];
+              for (const line of content.split('\n')) {
+                if (line.trim().startsWith('@import')) continue;
+                for (const match of line.matchAll(/url\(\s*['"]?(https?:\/\/[^'"\s)]+)['"]?\s*\)/gi)) {
+                  const url = match[1];
+                  if (url.startsWith('data:')) continue;
+                  try {
+                    const host = new URL(url).hostname;
+                    if (SKIP_URL_HOSTS.includes(host)) continue;
+                  } catch (_) { continue; }
+                  if (!url.startsWith(REPO_RAW_PREFIX)) badUrls.push(url);
+                }
+              }
+
+              if (badUrls.length > 0) {
+                const fname   = cssFile.filename.split('/').pop();
+                const urlList = badUrls.slice(0, 3).map(u => `\`${u}\``).join(', ');
+                const more    = badUrls.length > 3 ? ` (+${badUrls.length - 3} more)` : '';
+                issues.push({
+                  title: `\`${fname}\` — external image URL(s) detected`,
+                  what:  `Found ${badUrls.length} external URL(s) in \`${cssFile.filename}\`: ${urlList}${more}.`,
+                  why:   'All images referenced in theme CSS must be hosted in this repository. External URLs (e.g. Imgur) are not permitted.',
+                  fix:   `Upload your images to your theme subfolder and reference them via the raw GitHub URL:\n\`${REPO_RAW_PREFIX}main/Your%20Folder/Your%20Theme/image.png\``,
+                });
+              }
+            }
+
             // Check collaborator status
             let isCollaborator = false;
             try {
