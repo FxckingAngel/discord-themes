@@ -202,9 +202,10 @@ jobs:
               }
             }
 
-            // CSS URL validation — all image urls must be hosted in this repo
-            const REPO_RAW_PREFIX = 'https://raw.githubusercontent.com/Silverfox0338/discord-themes/';
-            const SKIP_URL_HOSTS  = ['fonts.googleapis.com', 'fonts.gstatic.com'];
+            // CSS URL + @import validation
+            const REPO_RAW_PREFIX      = 'https://raw.githubusercontent.com/Silverfox0338/discord-themes/';
+            const SKIP_URL_HOSTS       = ['fonts.googleapis.com', 'fonts.gstatic.com'];
+            const ALLOWED_IMPORT_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com', 'clearvision.github.io'];
 
             const cssToCheck = files.filter(f => {
               const parts  = f.filename.split('/');
@@ -225,9 +226,36 @@ jobs:
                 content = Buffer.from(fileData.content, 'base64').toString('utf8');
               } catch (_) { continue; }
 
-              const badUrls = [];
+              const cssTopFolder = cssFile.filename.split('/')[0];
+              const fname        = cssFile.filename.split('/').pop();
+              const badUrls      = [];
+              const badImports   = [];
+
               for (const line of content.split('\n')) {
-                if (line.trim().startsWith('@import')) continue;
+                const trimmed = line.trim();
+
+                if (trimmed.startsWith('@import')) {
+                  const importMatch = trimmed.match(/@import\s+(?:url\(\s*['"]?|['"])(https?:\/\/[^'"\s)]+)/i);
+                  if (importMatch) {
+                    const importUrl = importMatch[1];
+                    let allowed = false;
+                    try {
+                      const host = new URL(importUrl).hostname;
+                      if (ALLOWED_IMPORT_HOSTS.includes(host)) {
+                        allowed = true;
+                      } else if (importUrl.startsWith(REPO_RAW_PREFIX)) {
+                        const afterBranch    = importUrl.slice(REPO_RAW_PREFIX.length).replace(/^[^/]+\//, '');
+                        const importedFolder = decodeURIComponent(afterBranch.split('/')[0]);
+                        if (importedFolder.toLowerCase() === cssTopFolder.toLowerCase()) {
+                          allowed = true;
+                        }
+                      }
+                    } catch (_) {}
+                    if (!allowed) badImports.push(importUrl);
+                  }
+                  continue;
+                }
+
                 for (const match of line.matchAll(/url\(\s*['"]?(https?:\/\/[^'"\s)]+)['"]?\s*\)/gi)) {
                   const url = match[1];
                   if (url.startsWith('data:')) continue;
@@ -239,8 +267,19 @@ jobs:
                 }
               }
 
+              if (badImports.length > 0) {
+                const encodedFolder = cssTopFolder.replace(/ /g, '%20');
+                const importList    = badImports.slice(0, 3).map(u => `\`${u}\``).join(', ');
+                const more          = badImports.length > 3 ? ` (+${badImports.length - 3} more)` : '';
+                issues.push({
+                  title: `\`${fname}\` — blocked @import URL(s)`,
+                  what:  `Found ${badImports.length} blocked \`@import\` URL(s) in \`${cssFile.filename}\`: ${importList}${more}.`,
+                  why:   'Only Google Fonts, ClearVision, and imports from your own contributor folder are permitted.',
+                  fix:   `Use an allowed source, or move shared CSS into your \`${cssTopFolder}/assists/\` subfolder and import it via:\n\`${REPO_RAW_PREFIX}main/${encodedFolder}/assists/your-file.css\``,
+                });
+              }
+
               if (badUrls.length > 0) {
-                const fname   = cssFile.filename.split('/').pop();
                 const urlList = badUrls.slice(0, 3).map(u => `\`${u}\``).join(', ');
                 const more    = badUrls.length > 3 ? ` (+${badUrls.length - 3} more)` : '';
                 issues.push({

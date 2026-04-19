@@ -272,7 +272,10 @@ function Get-ThemeCssFiles {
   $filesByPath = @{}
 
   foreach ($root in $searchRoots) {
-    $files = Get-ChildItem -LiteralPath $root -Recurse -File -Filter "*.css"
+    $rootPrefix = [System.IO.Path]::GetFullPath($root).TrimEnd([System.IO.Path]::DirectorySeparatorChar) + [System.IO.Path]::DirectorySeparatorChar
+    $files = Get-ChildItem -LiteralPath $root -Recurse -File -Filter "*.css" | Where-Object {
+      ($_.FullName.Substring($rootPrefix.Length) -split '[/\\]')[0] -ne 'assists'
+    }
     foreach ($file in $files) {
       $fullPath = [System.IO.Path]::GetFullPath($file.FullName)
       if (-not $filesByPath.ContainsKey($fullPath)) {
