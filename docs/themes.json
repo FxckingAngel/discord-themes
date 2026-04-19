@@ -1,5 +1,5 @@
 {
-  "generated": "2026-04-19T20:10:25.1823741+00:00",
+  "generated": "2026-04-19T20:59:23.6943204+00:00",
   "authors": {
     "8Bit": {
       "github": "8-bitStudio",
@@ -151,10 +151,10 @@
       "raw": "https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/anime-adaptive-zima-arknights.css"
     },
     {
-      "name": "Anime Adaptive (GIF wallpapers) [NSFW Optional]",
+      "name": "Anime Adaptive [NSFW Optional]",
       "author": "Korone",
-      "version": "1.3.0",
-      "description": "Base ClearVision anime theme for Anime Adaptive wallpaper variants. Supports GIF presets in this folder and licensed 4K JPG/PNG overrides through variant CSS files.",
+      "version": "1.5.2",
+      "description": "Base ClearVision anime theme for Anime Adaptive wallpaper variants. Supports repo-hosted GIF presets and licensed 4K JPG/PNG overrides.",
       "raw": "https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/anime-adaptive.css"
     },
     {
