@@ -1,4 +1,4 @@
-{
+﻿{
   "schemaVersion": 1,
   "folders": {
     "8Bit Themes": {
@@ -8,6 +8,10 @@
     "Silver Themes": {
       "author": "Silverfox0338",
       "github": "Silverfox0338"
+    },
+    "Stone Themes": {
+      "author": "TheStoneGamingMode",
+      "github": "TheStoneGamingMode"
     }
   }
 }
