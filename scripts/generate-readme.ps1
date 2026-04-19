@@ -1048,12 +1048,42 @@ $sortedThemes = $themes | Sort-Object Author, Name
 $authorGroups = $sortedThemes | Group-Object Author
 $fallbackFolders = @($fallbackByFolder.Values | Sort-Object Folder)
 
+# Dynamic counts for the welcome section
+$themeCount       = $sortedThemes.Count
+$contributorCount = @($authorGroups | Where-Object { -not [string]::IsNullOrWhiteSpace($_.Name) -and $_.Name -ne "Unknown" }).Count
+$themeWord        = if ($themeCount -ne 1) { "themes" } else { "theme" }
+$contributorWord  = if ($contributorCount -ne 1) { "contributors" } else { "contributor" }
+
 $readmeLines.Add("# discord-themes")
+$readmeLines.Add("")
+$readmeLines.Add("A community collection of custom Discord themes for BetterDiscord and Vencord — handcrafted by people who actually care about how their Discord looks.")
+$readmeLines.Add("")
+$readmeLines.Add("Currently home to **$themeCount $themeWord** from **$contributorCount $contributorWord**, and always open to more.")
+$readmeLines.Add("")
+$readmeLines.Add("---")
+$readmeLines.Add("")
+$readmeLines.Add("## How it works")
+$readmeLines.Add("")
+$readmeLines.Add("Every theme lives in its own contributor folder. Each contributor owns their folder — they can add, update, or remove their themes freely. Themes are installed via a raw GitHub URL, so you always get the latest version automatically without re-downloading anything.")
+$readmeLines.Add("")
+$readmeLines.Add("Contributors can also include an **AUTHOR.md** in their folder — a short profile page with links to their work, socials, and anything else relevant to their themes. Look for the **Profile** link next to a contributor's name in the Authors section below.")
+$readmeLines.Add("")
+$readmeLines.Add("---")
+$readmeLines.Add("")
+$readmeLines.Add("## Want to add your theme?")
+$readmeLines.Add("")
+$readmeLines.Add("This repo is open to everyone. If you've made a Discord theme and want it listed here, just fork the repo, add your theme, and open a pull request — the bot will validate it automatically and walk you through anything that needs fixing.")
+$readmeLines.Add("")
+$readmeLines.Add("First-time submissions get a quick manual review. After that, your PRs auto-merge.")
+$readmeLines.Add("")
+$readmeLines.Add("→ **[Developer & Contributor Guide](https://github.com/Silverfox0338/discord-themes/wiki/Developer-&-Contributor-Guide)** — everything you need to know to submit a theme.")
+$readmeLines.Add("")
+$readmeLines.Add("---")
 $readmeLines.Add("")
 $readmeLines.Add("## Themes")
 $readmeLines.Add("")
 $readmeLines.Add("<details>")
-$readmeLines.Add("<summary>$($sortedThemes.Count) theme$(if ($sortedThemes.Count -ne 1) {'s'}) — click to expand</summary>")
+$readmeLines.Add("<summary>$themeCount $themeWord — click to expand</summary>")
 $readmeLines.Add("")
 $readmeLines.Add("| Theme | Author | Version | Description | Raw URL/Online Theme URL |")
 $readmeLines.Add("| --- | --- | --- | --- | --- |")
