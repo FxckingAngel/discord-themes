@@ -4,6 +4,24 @@
 
 ---
 
+## Theme(s) being submitted
+
+<!-- Fill this out for every theme in this PR, even if you're a returning contributor -->
+
+**Theme name:**
+<!-- e.g. Anime Adaptive -->
+
+**What does it look like / what's the vibe?**
+<!-- Describe the visual style — colors, mood, inspiration, etc. -->
+
+**What makes it unique?**
+<!-- What sets it apart from a generic dark/light theme? -->
+
+**Preview:**
+<!-- Link or attach a screenshot/gif if you have one — not required but strongly encouraged -->
+
+---
+
 ## Checklist
 
 - [ ] My folder is named `My Name Themes` (ends with " Themes", plural)
