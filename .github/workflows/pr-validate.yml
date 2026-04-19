@@ -55,13 +55,14 @@ jobs:
               if (reportedNamingIssues.has(topFolder)) return;
               if (topFolder.endsWith(' Themes')) return;
               reportedNamingIssues.add(topFolder);
-              const suggestedName = topFolder.endsWith(' Theme')
-                ? topFolder + 's'
-                : topFolder + ' Themes';
+              const isSingular = topFolder.endsWith(' Theme');
+              const suggestedName = isSingular ? topFolder + 's' : topFolder + ' Themes';
               issues.push({
-                title: `\`${topFolder}/\` — folder name must end with " Themes"`,
-                what:  `Your contributor folder is named \`${topFolder}\`.`,
-                why:   'All contributor folders must follow the naming convention, e.g. "Korone Themes", "Silver Themes".',
+                title: isSingular
+                  ? `\`${topFolder}/\` — folder must be named "Themes" not "Theme"`
+                  : `\`${topFolder}/\` — folder name must end with " Themes"`,
+                what:  `Your contributor folder is named \`${topFolder}\`${isSingular ? ' (note the missing "s")' : ''}.`,
+                why:   'All contributor folders must end with " Themes" (plural) — e.g. "Korone Themes", "Silver Themes".',
                 fix:   `Rename your folder to \`${suggestedName}\`.`,
               });
             }
@@ -174,6 +175,18 @@ jobs:
                 if (isOwnedRename || file.status === 'added') {
                   if (!newFolderSet.has(topFolder)) {
                     newFolderSet.add(topFolder);
+                    // One folder per contributor — block if they already own one
+                    const existingFolder = Object.entries(folderOwners).find(
+                      ([f, e]) => (e.github || e.author || '').toLowerCase() === prAuthor.toLowerCase()
+                    );
+                    if (existingFolder && existingFolder[0] !== topFolder && !isOwnedRename) {
+                      issues.push({
+                        title: `\`${topFolder}/\` — each contributor may only have one folder`,
+                        what:  `You already own \`${existingFolder[0]}/\` and are trying to create a second folder \`${topFolder}/\`.`,
+                        why:   'Each contributor is limited to one theme folder in this repo.',
+                        fix:   `Add your themes inside your existing folder \`${existingFolder[0]}/\`, or contact the repo owner if you need an exception.`,
+                      });
+                    }
                   }
                   checkFolderNaming(topFolder);
                   validateStructure(file.filename, topFolder);
