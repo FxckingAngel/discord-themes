@@ -20,4 +20,8 @@
   --deep-surface: #4F5059;
   --accent-glow: rgba(166, 168, 176, 0.38);
   --background-overlay: rgba(166, 168, 176, 0.32);
+  --background-brightness: 0.7;
+  --background-contrast: 1.06;
+  --background-saturation: 1.03;
+  --transparency: 0.83;
 }
