@@ -1,0 +1,35 @@
+/**
+ * @name Anime Adaptive - Madoromi Pink Bed [SFW]
+ * @author notal
+ * @version 1.0.0
+ * @description Anime Adaptive variant with the Madoromi Pink Bed wallpaper and a matching blush-pink accent palette.
+ */
+
+@import url("https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/anime-adaptive.css");
+
+:root {
+  --korone-wallpaper: url("https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/wallpapers/madoromi-more-asmr-on-pink-bed-wallpaperwaifu-com.gif");
+  --accent-r: 201;
+  --accent-g: 146;
+  --accent-b: 178;
+  --main-color: #B56F97;
+  --hover-color: #C989AA;
+  --text-link: #D99FC0;
+  --channel-color: #8F617A;
+  --muted-color: #B990A4;
+  --deep-surface: #4A2D3D;
+  --accent-glow: rgba(201, 146, 178, 0.34);
+  --background-overlay: rgba(201, 146, 178, 0.24);
+  --background-brightness: 0.82;
+  --background-contrast: 1.04;
+  --background-saturation: 1.03;
+  --transparency: 0.79;
+}
+
+.theme-dark {
+  --background-shading: rgba(28, 16, 24, 0.42);
+  --card-shading: rgba(38, 22, 30, 0.22);
+  --popout-shading: rgba(20, 10, 18, 0.64);
+  --modal-shading: rgba(24, 14, 22, 0.46);
+  --input-shading: rgba(201, 146, 178, 0.15);
+}
