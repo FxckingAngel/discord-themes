@@ -113,11 +113,11 @@
 }
 
 .theme-dark {
-  --background-shading: rgba(18, 14, 28, 0.78);
-  --card-shading: rgba(22, 18, 32, 0.55);
-  --popout-shading: rgba(12, 8, 18, 0.9);
-  --modal-shading: rgba(16, 12, 24, 0.75);
-  --input-shading: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.08);
+  --background-shading: rgba(18, 14, 28, 0.58);
+  --card-shading: rgba(22, 18, 32, 0.34);
+  --popout-shading: rgba(12, 8, 18, 0.78);
+  --modal-shading: rgba(16, 12, 24, 0.56);
+  --input-shading: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.14);
   --text-normal: #DDE2F0;
   --text-muted: var(--muted-color);
   --text-link: var(--hover-color);
@@ -142,17 +142,17 @@
 }
 
 .theme-darker {
-  --background-shading: rgba(10, 8, 16, 0.9);
-  --card-shading: rgba(14, 12, 20, 0.7);
-  --popout-shading: rgba(8, 6, 12, 0.95);
-  --modal-shading: rgba(12, 10, 18, 0.85);
+  --background-shading: rgba(10, 8, 16, 0.68);
+  --card-shading: rgba(14, 12, 20, 0.48);
+  --popout-shading: rgba(8, 6, 12, 0.82);
+  --modal-shading: rgba(12, 10, 18, 0.62);
 }
 
 .theme-midnight {
-  --background-shading: rgba(6, 4, 10, 0.96);
-  --card-shading: rgba(10, 8, 14, 0.82);
-  --popout-shading: rgba(4, 2, 8, 0.98);
-  --modal-shading: rgba(8, 6, 12, 0.92);
+  --background-shading: rgba(6, 4, 10, 0.76);
+  --card-shading: rgba(10, 8, 14, 0.58);
+  --popout-shading: rgba(4, 2, 8, 0.86);
+  --modal-shading: rgba(8, 6, 12, 0.70);
 }
 
 #cv-settings-button,

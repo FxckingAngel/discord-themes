@@ -20,16 +20,16 @@
   --deep-surface: #4F5059;
   --accent-glow: rgba(166, 168, 176, 0.38);
   --background-overlay: rgba(166, 168, 176, 0.32);
-  --background-brightness: 0.7;
-  --background-contrast: 1.06;
-  --background-saturation: 1.03;
-  --transparency: 0.83;
+  --background-brightness: 0.78;
+  --background-contrast: 1.08;
+  --background-saturation: 1.05;
+  --transparency: 0.79;
 }
 
 .theme-dark {
-  --background-shading: rgba(22, 24, 30, 0.54);
-  --card-shading: rgba(28, 31, 38, 0.33);
-  --popout-shading: rgba(16, 18, 24, 0.74);
-  --modal-shading: rgba(20, 22, 28, 0.58);
-  --input-shading: rgba(166, 168, 176, 0.16);
+  --background-shading: rgba(22, 24, 30, 0.44);
+  --card-shading: rgba(28, 31, 38, 0.23);
+  --popout-shading: rgba(16, 18, 24, 0.66);
+  --modal-shading: rgba(20, 22, 28, 0.48);
+  --input-shading: rgba(166, 168, 176, 0.18);
 }
