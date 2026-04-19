@@ -1,17 +1,18 @@
 /**
- * @name Anime Adaptive (GIF wallpapers)
+ * @name Anime Adaptive (GIF wallpapers) [NSFW Optional]
  * @author notal
- * @version 1.0.0
- * @description ClearVision anime theme: animated GIF backgrounds and accent colors synced from your wallpaper via the bundled PowerShell script (CSS cannot sample images by itself).
+ * @version 1.3.0
+ * @description Base ClearVision anime theme for Anime Adaptive wallpaper variants. Supports GIF presets in this folder and licensed 4K JPG/PNG overrides through variant CSS files.
  */
 
 /*
  * Install (wiki): BetterDiscord / Vencord → Themes → point at this file.
  * Local setup: keep this .css next to the /wallpapers folder (copy the whole "Anime Adaptive" folder into your client themes directory).
  *
- * Switch wallpaper: edit --background-image below OR run:
- *   powershell -File .\Sync-AnimeThemeAccent.ps1 -WallpaperPath ".\wallpapers\YOUR.gif"
- * That rewrites the accent block and sets the background filename to match.
+ * Switch wallpaper and accents:
+ * 1. Install one of the per-wallpaper variant CSS files in this folder, or
+ * 2. Override --korone-wallpaper and the accent variables in QuickCSS / Custom CSS, or
+ * 3. Use anime-adaptive-licensed-4k-template.css for a licensed 4K JPG/PNG background pack.
  *
  * GIFs included (4s loop, ~854px wide): see /wallpapers — originals converted from your MP4/JPG folder.
  */
@@ -19,9 +20,76 @@
 @import url("https://clearvision.github.io/ClearVision-v7/main.css");
 @import url("https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap");
 
+@property --accent-r {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 44;
+}
+
+@property --accent-g {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 76;
+}
+
+@property --accent-b {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 141;
+}
+
+@property --main-color {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #3D5A96;
+}
+
+@property --hover-color {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #5A73A6;
+}
+
+@property --text-link {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #5A73A6;
+}
+
+@property --channel-color {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #4D5D88;
+}
+
+@property --muted-color {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #8E9AB8;
+}
+
+@property --deep-surface {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #1D315C;
+}
+
+@property --accent-glow {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: rgba(44, 76, 141, 0.38);
+}
+
+@property --background-overlay {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: rgba(44, 76, 141, 0.32);
+}
+
 :root {
   /* Pick one file from ./wallpapers/ — or set via Sync-AnimeThemeAccent.ps1 */
-  --background-image: url("./wallpapers/azure-blade-moewalls-com.gif");
+  --korone-wallpaper: url("./wallpapers/azure-blade-moewalls-com.gif");
+  --background-image: var(--korone-wallpaper);
   /* <ANIME_ACCENT_AUTO_START> */
   --accent-r: 44;
   --accent-g: 76;
@@ -50,6 +118,7 @@
   --background-overlay: rgba(44, 76, 141, 0.32);
   --background-brightness: 0.52;
   /* <ANIME_ACCENT_AUTO_END> */
+  --anime-accent-animation: none;
 
   --background-shading: 100%;
   --background-position: center;
@@ -75,7 +144,7 @@
   --user-modal-blur: 4px;
   --user-modal-brightness: 0.5;
 
-  --home-icon: url("https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/notal%20Themes/Anime%20Adaptive/assets/QCpjMsR.png");
+  --home-icon: url("https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/assets/QCpjMsR.png");
   --home-position: center;
   --home-size: 125%;
 
@@ -87,6 +156,7 @@
   --pure-white: #F8FAFF;
   --deep-black: #0E0A12;
   --mid-gray: var(--channel-color);
+  animation: var(--anime-accent-animation);
 }
 
 * {
