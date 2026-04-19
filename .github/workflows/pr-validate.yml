@@ -14,6 +14,7 @@ jobs:
     outputs:
       safe_to_merge:   ${{ steps.check.outputs.safe_to_merge }}
       is_collaborator: ${{ steps.check.outputs.is_collaborator }}
+      is_registered:   ${{ steps.check.outputs.is_registered }}
       issues_json:     ${{ steps.check.outputs.issues_json }}
     steps:
       - name: Check PR changes
@@ -386,6 +387,7 @@ jobs:
             const isCollaborator = isGitHubCollaborator || isTrusted;
 
             core.setOutput('is_collaborator', String(isCollaborator));
+            core.setOutput('is_registered',   String(isRegistered));
             core.setOutput('issues_json', JSON.stringify(issues.map(i => i.title)));
 
             if (issues.length > 0) {
@@ -485,28 +487,34 @@ jobs:
         uses: actions/github-script@v7
         env:
           IS_COLLABORATOR:   ${{ needs.validate.outputs.is_collaborator }}
+          IS_REGISTERED:     ${{ needs.validate.outputs.is_registered }}
           ISSUES_JSON:       ${{ needs.validate.outputs.issues_json }}
           VALIDATE_RESULT:   ${{ needs.validate.result }}
           AUTO_MERGE_RESULT: ${{ needs.auto-merge.result }}
         with:
           script: |
             const fs = require('fs');
-            const isCollaborator    = process.env.IS_COLLABORATOR === 'true';
-            const validateResult    = process.env.VALIDATE_RESULT;
-            const autoMergeResult   = process.env.AUTO_MERGE_RESULT;
-            const issues            = process.env.ISSUES_JSON ? JSON.parse(process.env.ISSUES_JSON) : [];
+            const isCollaborator  = process.env.IS_COLLABORATOR === 'true';
+            const isRegistered    = process.env.IS_REGISTERED   === 'true';
+            const validateResult  = process.env.VALIDATE_RESULT;
+            const autoMergeResult = process.env.AUTO_MERGE_RESULT;
+            const issues          = process.env.ISSUES_JSON ? JSON.parse(process.env.ISSUES_JSON) : [];
 
             let outcome;
             if (autoMergeResult === 'success') {
               outcome = 'auto_merged';
             } else if (validateResult === 'failure' && isCollaborator) {
               outcome = 'rejected_collaborator';
-            } else if (validateResult === 'failure' && !isCollaborator) {
+            } else if (validateResult === 'failure' && isRegistered) {
+              outcome = 'rejected_registered';
+            } else if (validateResult === 'failure') {
               outcome = 'rejected_unknown';
-            } else if (validateResult === 'success' && !isCollaborator) {
+            } else if (validateResult === 'success' && isRegistered) {
+              outcome = 'needs_trust_approval';
+            } else if (validateResult === 'success') {
               outcome = 'needs_review';
             } else {
-              return; // Nothing to notify
+              return;
             }
 
             const payload = {
