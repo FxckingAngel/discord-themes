@@ -27,6 +27,7 @@ body:
       options:
         - 8Bit
         - Silverfox0338
+        - Stone
     validations:
       required: true
 
