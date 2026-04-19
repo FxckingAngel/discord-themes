@@ -5,10 +5,10 @@
  * @description Anime Adaptive variant with the Shiroko Skyfall wallpaper and a matching steel blue-gray accent palette.
  */
 
-@import url("https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/anime-adaptive.css");
+@import url("https://raw.githubusercontent.com/FxckingAngel/discord-themes/main/Korone%20Themes/Anime%20Adaptive/anime-adaptive.css");
 
 :root {
-  --korone-wallpaper: url("https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/wallpapers/shiroko-skyfall-blue-archive-moewalls-com.gif");
+  --korone-wallpaper: url("https://raw.githubusercontent.com/FxckingAngel/discord-themes/main/Korone%20Themes/Anime%20Adaptive/wallpapers/shiroko-skyfall-blue-archive-moewalls-com.gif");
   --accent-r: 117;
   --accent-g: 122;
   --accent-b: 134;

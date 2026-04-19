@@ -4,7 +4,7 @@ Discord theme creator focused on anime-inspired setups, animated wallpapers, and
 
 ## My Themes
 
-- [Anime Adaptive](https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/anime-adaptive.css)
+- [Anime Adaptive](https://raw.githubusercontent.com/FxckingAngel/discord-themes/main/Korone%20Themes/Anime%20Adaptive/anime-adaptive.css)
 
 ## Links
 
