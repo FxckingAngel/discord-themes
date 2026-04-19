@@ -270,7 +270,7 @@
 
 [class*="modeSelected"],
 [class*="selected-"] {
-  background-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.16) !important;
+  background-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.20) !important;
   border-left: 3px solid var(--main-color) !important;
   border-radius: 0 4px 4px 0 !important;
 }
@@ -290,7 +290,7 @@
 }
 
 [class*="message-"]:hover {
-  background-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.04);
+  background-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.07);
 }
 
 [class*="mention"]:not([class*="icon"]):not([class*="iconMention"]) {
@@ -376,6 +376,21 @@ code {
 [class*="searchBar-"]:focus-within {
   border-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.45) !important;
   box-shadow: 0 0 0 1px rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.2), 0 0 15px var(--accent-glow);
+}
+
+[class*="form-"],
+[class*="channelTextArea-"],
+[class*="scrollableContainer-"],
+[class*="themedBackground-"] {
+  background-color: rgba(18, 16, 26, 0.30) !important;
+  border-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.16) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+[class*="channelTextArea-"]:focus-within,
+[class*="scrollableContainer-"]:focus-within {
+  background-color: rgba(20, 18, 30, 0.36) !important;
+  border-color: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.28) !important;
 }
 
 [class*="tooltip-"] {
