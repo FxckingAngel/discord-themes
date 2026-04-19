@@ -5,10 +5,10 @@
  * @description Anime Adaptive variant with the Konachan Sample wallpaper and a matching soft mauve accent palette. Contains mild NSFW / suggestive imagery.
  */
 
-@import url("https://raw.githubusercontent.com/FxckingAngel/discord-themes/main/Korone%20Themes/Anime%20Adaptive/anime-adaptive.css");
+@import url("https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/anime-adaptive.css");
 
 :root {
-  --korone-wallpaper: url("https://raw.githubusercontent.com/FxckingAngel/discord-themes/main/Korone%20Themes/Anime%20Adaptive/wallpapers/konachan-com-402181-sample.gif");
+  --korone-wallpaper: url("https://raw.githubusercontent.com/Silverfox0338/discord-themes.wiki/master/Anime-Adaptive/wallpapers/konachan-com-402181-sample.gif");
   --accent-r: 192;
   --accent-g: 175;
   --accent-b: 191;

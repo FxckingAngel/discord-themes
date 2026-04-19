@@ -5,10 +5,10 @@
  * @description Anime Adaptive variant with the After Effects Anime Girl wallpaper and a matching accent palette.
  */
 
-@import url("https://raw.githubusercontent.com/FxckingAngel/discord-themes/main/Korone%20Themes/Anime%20Adaptive/anime-adaptive.css");
+@import url("https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/anime-adaptive.css");
 
 :root {
-  --korone-wallpaper: url("https://raw.githubusercontent.com/FxckingAngel/discord-themes/main/Korone%20Themes/Anime%20Adaptive/wallpapers/after-effects-anime-girl-wallpaperwaifu-com.gif");
+  --korone-wallpaper: url("https://raw.githubusercontent.com/Silverfox0338/discord-themes.wiki/master/Anime-Adaptive/wallpapers/after-effects-anime-girl-wallpaperwaifu-com.gif");
   --accent-r: 55;
   --accent-g: 58;
   --accent-b: 82;

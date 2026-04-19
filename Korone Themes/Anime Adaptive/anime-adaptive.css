@@ -1,8 +1,8 @@
 /**
  * @name Anime Adaptive (Wallpaper Engine Ready) [NSFW Optional]
  * @author notal
- * @version 1.4.0
- * @description Base ClearVision anime theme for Anime Adaptive wallpaper variants. Supports GIF presets, licensed 4K JPG/PNG overrides, and the local Vencord Wallpaper Engine helper in this folder.
+ * @version 1.5.0
+ * @description Base ClearVision anime theme for Anime Adaptive wallpaper variants. Supports wiki-hosted GIF presets, licensed 4K JPG/PNG overrides, and the local Vencord Wallpaper Engine helper in this folder.
  */
 
 /*
@@ -31,6 +31,11 @@
   --korone-video-brightness: 0.72;
   --korone-video-saturation: 1.05;
   --korone-video-blur: 0px;
+  --korone-clock-accent: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.86);
+  --korone-clock-bg: rgba(8, 10, 18, 0.34);
+  --korone-clock-border: rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.24);
+  --korone-clock-text: #F7FAFF;
+  --korone-clock-shadow: 0 18px 46px rgba(0, 0, 0, 0.38);
   /* <ANIME_ACCENT_AUTO_START> */
   --accent-r: 44;
   --accent-g: 76;
@@ -83,7 +88,7 @@
   --user-modal-blur: 4px;
   --user-modal-brightness: 0.5;
 
-  --home-icon: url("https://raw.githubusercontent.com/FxckingAngel/discord-themes/main/Korone%20Themes/Anime%20Adaptive/assets/QCpjMsR.png");
+  --home-icon: url("https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/assets/QCpjMsR.png");
   --home-position: center;
   --home-size: 125%;
 
@@ -124,10 +129,68 @@ body.korone-video-wallpaper-active {
   transform: scale(1.015);
 }
 
+#korone-wallpaper-engine-clock {
+  position: absolute;
+  right: 32px;
+  bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 260px;
+  padding: 16px 18px;
+  border: 1px solid var(--korone-clock-border);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(var(--accent-r), var(--accent-g), var(--accent-b), 0.12), transparent 52%),
+    var(--korone-clock-bg);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--korone-clock-shadow);
+  color: var(--korone-clock-text);
+  text-align: right;
+  z-index: 2;
+}
+
+#korone-wallpaper-engine-clock .korone-clock-label {
+  color: var(--korone-clock-accent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+#korone-wallpaper-engine-clock .korone-clock-time {
+  font-size: clamp(34px, 4vw, 56px);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  text-shadow: 0 0 18px rgba(0, 0, 0, 0.25);
+}
+
+#korone-wallpaper-engine-clock .korone-clock-date {
+  color: rgba(247, 250, 255, 0.84);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
 body.korone-video-wallpaper-active #app-mount,
 body.korone-video-wallpaper-active [class*="appMount"] {
   position: relative;
   z-index: 1;
+}
+
+@media (max-width: 720px) {
+  #korone-wallpaper-engine-clock {
+    right: 16px;
+    bottom: 16px;
+    min-width: 0;
+    max-width: calc(100vw - 32px);
+    padding: 14px 16px;
+  }
+
+  #korone-wallpaper-engine-clock .korone-clock-time {
+    font-size: clamp(28px, 10vw, 42px);
+  }
 }
 
 [class*="titleBar-"],

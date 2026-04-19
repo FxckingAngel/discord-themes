@@ -5,10 +5,10 @@
  * @description Anime Adaptive variant with the Lonely Girl Far Away At Night wallpaper and a matching dusk accent palette.
  */
 
-@import url("https://raw.githubusercontent.com/FxckingAngel/discord-themes/main/Korone%20Themes/Anime%20Adaptive/anime-adaptive.css");
+@import url("https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/anime-adaptive.css");
 
 :root {
-  --korone-wallpaper: url("https://raw.githubusercontent.com/FxckingAngel/discord-themes/main/Korone%20Themes/Anime%20Adaptive/wallpapers/lonely-girl-far-away-at-night-wallpaperwaifu-com.gif");
+  --korone-wallpaper: url("https://raw.githubusercontent.com/Silverfox0338/discord-themes.wiki/master/Anime-Adaptive/wallpapers/lonely-girl-far-away-at-night-wallpaperwaifu-com.gif");
   --accent-r: 81;
   --accent-g: 84;
   --accent-b: 103;

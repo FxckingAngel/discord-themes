@@ -5,10 +5,10 @@
  * @description Anime Adaptive variant with the Azure Blade wallpaper and a matching blue accent palette.
  */
 
-@import url("https://raw.githubusercontent.com/FxckingAngel/discord-themes/main/Korone%20Themes/Anime%20Adaptive/anime-adaptive.css");
+@import url("https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Korone%20Themes/Anime%20Adaptive/anime-adaptive.css");
 
 :root {
-  --korone-wallpaper: url("https://raw.githubusercontent.com/FxckingAngel/discord-themes/main/Korone%20Themes/Anime%20Adaptive/wallpapers/azure-blade-moewalls-com.gif");
+  --korone-wallpaper: url("https://raw.githubusercontent.com/Silverfox0338/discord-themes.wiki/master/Anime-Adaptive/wallpapers/azure-blade-moewalls-com.gif");
   --accent-r: 45;
   --accent-g: 78;
   --accent-b: 140;
