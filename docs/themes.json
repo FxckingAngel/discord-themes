@@ -1,5 +1,5 @@
 {
-  "generated": "2026-04-19T15:03:25.7038617-04:00",
+  "generated": "2026-04-19T20:10:25.1823741+00:00",
   "authors": {
     "8Bit": {
       "github": "8-bitStudio",
@@ -41,7 +41,7 @@
     {
       "name": "Hello World",
       "author": "8Bit",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "description": "A theme inspired by the iconic Artemis II \"Hello World\" photograph — Earth glowing in moonlight from lunar distance, auroras crowning the poles. Upbeat greens and blues with Fredoka for a cosmic, feel-good vibe.",
       "raw": "https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/8Bit%20Themes/Hello%20World/Hello%20World.css"
     },
