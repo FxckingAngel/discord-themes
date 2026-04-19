@@ -10,7 +10,7 @@
 | Beastars - Moonlit Wolf | Silverfox0338 | 8.0.7 | Beastars-themed Discord - Moonlit Legoshi | [Raw URL](https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Silver%20Themes/Legoshi/legoshi-theme.css) / [Online Theme URL](Silver%20Themes/Legoshi/legoshi-theme.css) |
 | Cozy Autumn Morning (SFW) | Silverfox0338 | 1.0.0 | Warm autumn-themed Discord - Cozy Fall Vibes with Jack-o'-Lantern ambiance | [Raw URL](https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Silver%20Themes/korone-theme.css) / [Online Theme URL](Silver%20Themes/korone-theme.css) |
 | Tokyo Ghoul | Silverfox0338 | 2.3.1 | Tokyo Ghoul-inspired theme with a dark, moody aesthetic, custom fonts, and enhanced visual effects for an immersive Discord experience. | [Raw URL](https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Silver%20Themes/B%27s%20Theme/tokyoghoul.css) / [Online Theme URL](Silver%20Themes/B%27s%20Theme/tokyoghoul.css) |
-| Cherry Blossom | TheStoneGamingMode | 1.0.0 | A short description of your theme. | [Raw URL](https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Stone%20Themes/cherry-blossom.css) / [Online Theme URL](Stone%20Themes/cherry-blossom.css) |
+| Cherry Blossom | TheStoneGamingMode | 1.0.0 | A cherry blossom theme for Discord. | [Raw URL](https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Stone%20Themes/cherry-blossom.css) / [Online Theme URL](Stone%20Themes/cherry-blossom.css) |
 
 ## Authors
 
@@ -38,7 +38,7 @@ Total themes: 3
 
 | Theme | Version | Description | Raw URL/Online Theme URL |
 | --- | --- | --- | --- |
-| Cherry Blossom | 1.0.0 | A short description of your theme. | [Raw URL](https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Stone%20Themes/cherry-blossom.css) / [Online Theme URL](Stone%20Themes/cherry-blossom.css) |
+| Cherry Blossom | 1.0.0 | A cherry blossom theme for Discord. | [Raw URL](https://raw.githubusercontent.com/Silverfox0338/discord-themes/main/Stone%20Themes/cherry-blossom.css) / [Online Theme URL](Stone%20Themes/cherry-blossom.css) |
 
 Total themes: 1
 
