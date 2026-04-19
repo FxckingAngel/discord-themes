@@ -224,7 +224,16 @@ jobs:
                   ref:   context.payload.pull_request.head.sha,
                 });
                 content = Buffer.from(fileData.content, 'base64').toString('utf8');
-              } catch (_) { continue; }
+              } catch (_) {
+                const fname = cssFile.filename.split('/').pop();
+                issues.push({
+                  title: `\`${fname}\` — could not be read for validation`,
+                  what:  `The file \`${cssFile.filename}\` could not be fetched at your PR's commit SHA.`,
+                  why:   'All CSS files must be readable for URL and import validation to run. A fetch failure could indicate a ref mismatch or a GitHub API issue.',
+                  fix:   'Make sure the file is properly committed in your branch and try pushing again. If this keeps happening, open an issue.',
+                });
+                continue;
+              }
 
               const cssTopFolder = cssFile.filename.split('/')[0];
               const fname        = cssFile.filename.split('/').pop();
@@ -308,7 +317,15 @@ jobs:
                   ref:   context.payload.pull_request.head.sha,
                 });
                 content = Buffer.from(fileData.content, 'base64').toString('utf8');
-              } catch (_) { continue; }
+              } catch (_) {
+                issues.push({
+                  title: `\`${mdFile.filename}\` — could not be read for validation`,
+                  what:  `The file \`${mdFile.filename}\` could not be fetched at your PR's commit SHA.`,
+                  why:   'AUTHOR.md must be readable to validate its H1 heading.',
+                  fix:   'Make sure the file is properly committed in your branch and try pushing again. If this keeps happening, open an issue.',
+                });
+                continue;
+              }
 
               const h1Match = content.match(/^#\s+(.+)$/m);
               if (!h1Match) {
