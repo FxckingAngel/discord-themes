@@ -189,6 +189,23 @@ function Get-GitHubRawBaseUrl {
   return "https://raw.githubusercontent.com/$owner/$repo/$branch"
 }
 
+function Get-FolderForAuthor {
+  param(
+    [string]$Author,
+    [hashtable]$FolderMap
+  )
+
+  foreach ($folder in $FolderMap.Keys) {
+    $entry    = $FolderMap[$folder]
+    $entryVal = Get-ObjectPropertyValue -Object $entry -Name "author"
+    if (-not [string]::IsNullOrWhiteSpace($entryVal) -and $entryVal.Trim() -eq $Author) {
+      return $folder
+    }
+  }
+
+  return ""
+}
+
 function Get-MainFolder {
   param(
     [string]$RelativePath
@@ -774,7 +791,11 @@ $outputFile = if ([System.IO.Path]::IsPathRooted($OutputPath)) {
 } else {
   Join-Path $repoRoot $OutputPath
 }
-$rawBaseUrl = Get-GitHubRawBaseUrl
+$rawBaseUrl  = Get-GitHubRawBaseUrl
+$blobBaseUrl = ""
+if ($rawBaseUrl -match '^https://raw\.githubusercontent\.com/([^/]+)/([^/]+)/([^/]+)$') {
+  $blobBaseUrl = "https://github.com/$($matches[1])/$($matches[2])/blob/$($matches[3])"
+}
 
 if (-not [string]::IsNullOrWhiteSpace($PredictPngRawUrl)) {
   if ([string]::IsNullOrWhiteSpace($rawBaseUrl)) {
@@ -1031,46 +1052,70 @@ $readmeLines.Add("# discord-themes")
 $readmeLines.Add("")
 $readmeLines.Add("## Themes")
 $readmeLines.Add("")
+$readmeLines.Add("<details>")
+$readmeLines.Add("<summary>$($sortedThemes.Count) theme$(if ($sortedThemes.Count -ne 1) {'s'}) — click to expand</summary>")
+$readmeLines.Add("")
 $readmeLines.Add("| Theme | Author | Version | Description | Raw URL/Online Theme URL |")
 $readmeLines.Add("| --- | --- | --- | --- | --- |")
 
 foreach ($theme in $sortedThemes) {
-  $themeName = Escape-TableCell -Value $theme.Name
-  $themeAuthor = Escape-TableCell -Value $theme.Author
-  $themeVersion = Escape-TableCell -Value $theme.Version
+  $themeName        = Escape-TableCell -Value $theme.Name
+  $themeAuthor      = Escape-TableCell -Value $theme.Author
+  $themeVersion     = Escape-TableCell -Value $theme.Version
   $themeDescription = Escape-TableCell -Value $theme.Description
-  $rawLink = if ([string]::IsNullOrWhiteSpace($theme.RawUrl)) { "-" } else { "[Raw URL]($($theme.RawUrl))" }
-  $localLink = "[Online Theme URL]($($theme.LinkPath))"
-  $combinedLinks = "$rawLink / $localLink"
+  $rawLink          = if ([string]::IsNullOrWhiteSpace($theme.RawUrl)) { "-" } else { "[Raw URL]($($theme.RawUrl))" }
+  $localLink        = "[Online Theme URL]($($theme.LinkPath))"
+  $combinedLinks    = "$rawLink / $localLink"
 
   $readmeLines.Add("| $themeName | $themeAuthor | $themeVersion | $themeDescription | $combinedLinks |")
 }
 
 $readmeLines.Add("")
+$readmeLines.Add("</details>")
+$readmeLines.Add("")
 $readmeLines.Add("## Authors")
 
 foreach ($group in $authorGroups) {
-  $author = if ([string]::IsNullOrWhiteSpace($group.Name)) { "Unknown" } else { $group.Name }
+  $author       = if ([string]::IsNullOrWhiteSpace($group.Name)) { "Unknown" } else { $group.Name }
+  $groupThemes  = @($group.Group | Sort-Object Name)
+  $themeCount   = $groupThemes.Count
+  $themeWord    = if ($themeCount -ne 1) { "themes" } else { "theme" }
+
+  # Check for AUTHOR.md in this contributor's folder
+  $authorFolder = Get-FolderForAuthor -Author $author -FolderMap $authorMetadata.FolderMap
+  $authorMdLink = ""
+  if (-not [string]::IsNullOrWhiteSpace($authorFolder) -and -not [string]::IsNullOrWhiteSpace($blobBaseUrl)) {
+    $authorMdPath = Join-Path $repoRoot $authorFolder "AUTHOR.md"
+    if (Test-Path -LiteralPath $authorMdPath) {
+      $encodedFolder = Get-LinkPath -RelativePath $authorFolder
+      $authorMdLink  = " · [Profile]($blobBaseUrl/$encodedFolder/AUTHOR.md)"
+    }
+  }
+
   $readmeLines.Add("")
-  $readmeLines.Add("### $author")
+  $readmeLines.Add("### $author$authorMdLink")
+  $readmeLines.Add("")
+  $readmeLines.Add("<details>")
+  $readmeLines.Add("<summary>$themeCount $themeWord</summary>")
   $readmeLines.Add("")
   $readmeLines.Add("| Theme | Version | Description | Raw URL/Online Theme URL |")
   $readmeLines.Add("| --- | --- | --- | --- |")
 
-  $groupThemes = @($group.Group | Sort-Object Name)
   foreach ($theme in $groupThemes) {
-    $themeName = Escape-TableCell -Value $theme.Name
-    $themeVersion = Escape-TableCell -Value $theme.Version
+    $themeName        = Escape-TableCell -Value $theme.Name
+    $themeVersion     = Escape-TableCell -Value $theme.Version
     $themeDescription = Escape-TableCell -Value $theme.Description
-    $rawLink = if ([string]::IsNullOrWhiteSpace($theme.RawUrl)) { "-" } else { "[Raw URL]($($theme.RawUrl))" }
-    $localLink = "[Online Theme URL]($($theme.LinkPath))"
-    $combinedLinks = "$rawLink / $localLink"
+    $rawLink          = if ([string]::IsNullOrWhiteSpace($theme.RawUrl)) { "-" } else { "[Raw URL]($($theme.RawUrl))" }
+    $localLink        = "[Online Theme URL]($($theme.LinkPath))"
+    $combinedLinks    = "$rawLink / $localLink"
 
     $readmeLines.Add("| $themeName | $themeVersion | $themeDescription | $combinedLinks |")
   }
 
   $readmeLines.Add("")
-  $readmeLines.Add("Total themes: $($groupThemes.Count)")
+  $readmeLines.Add("Total themes: $themeCount")
+  $readmeLines.Add("")
+  $readmeLines.Add("</details>")
 }
 
 $readmeLines.Add("")
