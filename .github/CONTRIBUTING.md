@@ -20,7 +20,7 @@ It covers everything: folder structure, CSS header format, image hosting, AUTHOR
 
 ## First-time contributors
 
-Your first PR requires manual approval. [Open an issue](https://github.com/Silverfox0338/discord-themes/issues/new/choose) to introduce yourself and the repo owner will add you as a contributor. After that, your future PRs auto-merge once validation passes.
+Just open a PR — the repo owner will see it and review it. Fill out the PR template to introduce yourself and your theme. Once you're registered, future PRs auto-merge.
 
 ## Content Policy
 
