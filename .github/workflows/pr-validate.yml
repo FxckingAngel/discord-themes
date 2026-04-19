@@ -247,16 +247,22 @@ jobs:
               }
             }
 
-            // Check collaborator status
-            let isCollaborator = false;
+            // GitHub collaborators AND registered contributors both get auto-merge
+            let isGitHubCollaborator = false;
             try {
               await github.rest.repos.checkCollaborator({
                 owner: context.repo.owner,
-                repo: context.repo.repo,
+                repo:  context.repo.repo,
                 username: prAuthor,
               });
-              isCollaborator = true;
+              isGitHubCollaborator = true;
             } catch (_) {}
+
+            const isRegistered = Object.values(folderOwners).some(
+              entry => (entry.github || '').toLowerCase() === prAuthor.toLowerCase()
+            );
+
+            const isCollaborator = isGitHubCollaborator || isRegistered;
 
             core.setOutput('is_collaborator', String(isCollaborator));
             core.setOutput('issues_json', JSON.stringify(issues.map(i => i.title)));

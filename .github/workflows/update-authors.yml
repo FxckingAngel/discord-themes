@@ -1,0 +1,75 @@
+name: Register new contributors on merge
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  register:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.README_PUSH_TOKEN }}
+
+      - name: Register contributor if new folder was merged
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.README_PUSH_TOKEN }}
+          script: |
+            const fs = require('fs');
+
+            const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              commit_sha: context.sha,
+            });
+
+            const pr = prs.find(p => p.merged_at && p.base.ref === 'main');
+            if (!pr) return;
+
+            const prAuthor = pr.user.login;
+
+            const raw  = fs.readFileSync('theme-authors.json', 'utf8').replace(/^\uFEFF/, '');
+            const data = JSON.parse(raw);
+
+            if (Object.values(data.folders).some(
+              e => (e.github || '').toLowerCase() === prAuthor.toLowerCase()
+            )) return;
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              pull_number: pr.number,
+            });
+
+            const newFolders = [...new Set(
+              files
+                .filter(f => f.status === 'added' && f.filename.includes('/'))
+                .map(f => f.filename.split('/')[0])
+                .filter(folder => !data.folders[folder])
+            )];
+
+            if (newFolders.length === 0) return;
+
+            const { data: user } = await github.rest.users.getByUsername({ username: prAuthor });
+            const displayName = user.name || prAuthor;
+
+            for (const folder of newFolders) {
+              data.folders[folder] = { author: displayName, github: prAuthor };
+            }
+
+            fs.writeFileSync('theme-authors.json', '\uFEFF' + JSON.stringify(data, null, 2) + '\n', 'utf8');
+
+      - name: Commit if changed
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git diff --quiet theme-authors.json && echo "No new contributors." || \
+            (git add theme-authors.json && git commit -m "chore: register new contributor(s) [skip ci]" && git push)
