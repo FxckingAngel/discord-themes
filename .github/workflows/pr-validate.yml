@@ -288,6 +288,20 @@ jobs:
                     why:   'The H1 heading is used as your display name and must be 24 characters or fewer.',
                     fix:   `Shorten \`# ${h1Text}\` to 24 characters or fewer.`,
                   });
+                } else {
+                  const takenEntry = Object.entries(folderOwners).find(([f, e]) => {
+                    const existingName = (e.author || e.github || '').toLowerCase();
+                    return existingName === h1Text.toLowerCase() &&
+                           (e.github || '').toLowerCase() !== prAuthor.toLowerCase();
+                  });
+                  if (takenEntry) {
+                    issues.push({
+                      title: `\`${mdFile.filename}\` — author name \`${h1Text}\` is already taken`,
+                      what:  `Your AUTHOR.md uses the name \`# ${h1Text}\`, but that name (or a case variation of it) is already registered by another contributor.`,
+                      why:   'Author names must be unique across the repo. The comparison is case-insensitive, so "8Bit", "8BIT", and "8bit" are all the same name.',
+                      fix:   `Choose a different name for your \`# heading\` in AUTHOR.md.`,
+                    });
+                  }
                 }
               }
             }
